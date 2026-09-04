@@ -1,0 +1,525 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    {% if not is_authenticated %}
+    <!-- ── SECURE EMAIL IDENTITY VERIFICATION WALL ──────────────────────── -->
+    <div class="max-w-xl mx-auto my-8 bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+        <div class="p-8 text-center bg-gradient-to-b from-slate-50 to-white border-b border-slate-100">
+            <div class="inline-flex p-3 rounded-2xl bg-blue-50 border border-blue-100 text-blue-700 mb-4 shadow-sm">
+                <i class="fa-solid fa-user-check text-3xl text-[#30496D]"></i>
+            </div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Onix Employee Hub</h2>
+            <p class="text-xs text-slate-600 mt-2 max-w-md mx-auto leading-relaxed">
+                To see your DRP score/Tier details and more details, login with your email ID, verify your email, and access your details.
+            </p>
+        </div>
+
+        <div class="p-8 space-y-6">
+            <!-- Step 1: Enter Email -->
+            <div id="stepEmail" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Official Onix Email Address</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                        <input type="email" id="authEmailInput" placeholder="your.name@onixnet.com" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
+                    </div>
+                </div>
+
+                <button onclick="sendAuthOTP()" id="btnSendOtp" class="w-full py-3.5 text-white font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2" style="background-color: #30496D;">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                    <span id="btnSendOtpText">Send Verification Code</span>
+                </button>
+            </div>
+
+            <!-- Step 2: Enter OTP Code (Initially Hidden) -->
+            <div id="stepOtp" class="hidden space-y-4 pt-2 border-t border-slate-100">
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-xs flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-sm shrink-0"></i>
+                    <span id="otpSentNotice">Verification code sent! Check your inbox or spam.</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Enter 6-Digit Verification Code</label>
+                    <input type="text" id="authOtpInput" maxlength="6" placeholder="• • • • • •" class="w-full py-3.5 text-center tracking-[8px] bg-slate-50 border border-slate-300 rounded-xl text-xl font-mono font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
+                </div>
+
+                <button onclick="verifyAuthOTP()" id="btnVerifyOtp" class="w-full py-3.5 text-white font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2" style="background-color: #f35959;">
+                    <i class="fa-solid fa-unlock-keyhole text-xs"></i>
+                    <span id="btnVerifyOtpText">Verify & Access Details</span>
+                </button>
+
+                <div class="text-center pt-1">
+                    <button onclick="resendAuthOTP()" class="text-xs text-slate-500 hover:text-slate-800 font-semibold hover:underline">
+                        Didn't receive code? Resend
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error Notice Box -->
+            <div id="authErrorBox" class="hidden p-3 bg-rose-50 rounded-xl border border-rose-200 text-rose-700 text-xs flex items-center space-x-2">
+                <i class="fa-solid fa-triangle-exclamation text-rose-600 shrink-0"></i>
+                <span id="authErrorMsg">Error message</span>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 px-8 py-4 border-t border-slate-100 text-center text-[11px] text-slate-500 font-medium">
+            Created & Managed by L&D Enablement Team
+        </div>
+    </div>
+
+    {% else %}
+    <!-- ── AUTHENTICATED EMPLOYEE HUB VIEW ───────────────────────────────── -->
+
+    <!-- Header Bar -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center space-x-2">
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Employee Hub</h1>
+                {% if verified_email %}
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Verified
+                </span>
+                {% endif %}
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+                {% if current_role in ['owner', 'editor', 'leader'] %}
+                Executive View • Complete Organization Technical Competency & Roadmap
+                {% else %}
+                Welcome, <strong>{{ scope.my_record.name if scope.my_record else verified_email }}</strong>! Your personal scorecard and direct reporting line.
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            {% if verified_email %}
+            <a href="{{ url_for('logout_employee') }}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors border border-slate-200 flex items-center space-x-1.5" title="Switch User or Log Out">
+                <i class="fa-solid fa-arrow-right-from-bracket text-slate-500"></i>
+                <span>Switch / Sign Out</span>
+            </a>
+            {% endif %}
+            
+            {% if current_role == 'owner' %}
+            <button onclick="openEmployeeShare()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center space-x-1.5">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>Share Hub Link</span>
+            </button>
+            {% endif %}
+
+            <a href="{{ url_for('export_csv', tier=selected_tier, manager=selected_manager) }}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors border border-slate-200 flex items-center space-x-1.5">
+                <i class="fa-solid fa-file-csv"></i>
+                <span>Export CSV</span>
+            </a>
+        </div>
+    </div>
+
+    {% if scope.my_record %}
+    <!-- ── PERSONAL SCORECARD FEATURED BANNER ────────────────────────────── -->
+    <div class="rounded-2xl p-6 text-white shadow-xl border border-slate-800 relative overflow-hidden" style="background: linear-gradient(135deg, #30496D 0%, #1e2f47 100%);">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div class="space-y-2">
+                <div class="flex items-center space-x-2">
+                    <span class="px-2.5 py-0.5 rounded bg-white/10 text-slate-200 text-[11px] font-bold uppercase tracking-wider border border-white/15">
+                        Your Personal DRP Status
+                    </span>
+                    <span class="text-xs text-slate-300 font-mono">{{ scope.my_record.employee_id }}</span>
+                </div>
+                <h2 class="text-2xl font-black">{{ scope.my_record.name }}</h2>
+                <div class="flex flex-wrap items-center gap-4 text-xs text-slate-200 pt-1">
+                    <div><strong>Focus Area:</strong> {{ scope.my_record.product }}</div>
+                    <div><strong>Direct Manager:</strong> {{ scope.my_record.manager }}</div>
+                    <div><strong>Cluster:</strong> {{ scope.my_record.cluster }}</div>
+                    {% if scope.my_record.drp_id and scope.my_record.drp_id != 'None' %}
+                    <div><strong>DRP ID:</strong> <span class="font-mono">{{ scope.my_record.drp_id }}</span></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="p-3.5 bg-white/10 rounded-xl border border-white/15 backdrop-blur-sm text-center min-w-[100px]">
+                    <span class="text-[10px] uppercase text-slate-300 font-bold block">Current Score</span>
+                    <span class="text-2xl font-black font-mono text-white block mt-0.5">{{ scope.my_record.score }}</span>
+                </div>
+                <div class="p-3.5 bg-white/10 rounded-xl border border-white/15 backdrop-blur-sm text-center min-w-[110px]">
+                    <span class="text-[10px] uppercase text-slate-300 font-bold block">Current Tier</span>
+                    <span class="text-sm font-black text-amber-300 block mt-1">{{ scope.my_record.normalized_tier }}</span>
+                </div>
+                <div class="p-3.5 bg-white/10 rounded-xl border border-white/15 backdrop-blur-sm text-center min-w-[130px]">
+                    <span class="text-[10px] uppercase text-slate-300 font-bold block">Target Milestone</span>
+                    <span class="text-xs font-black text-emerald-300 block mt-1">{{ scope.my_record.target_tier }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-white/15 flex flex-wrap justify-between items-center gap-3 text-xs">
+            <div class="text-slate-300">
+                <i class="fa-solid fa-circle-info text-blue-300 mr-1"></i>
+                <strong>Action Needed:</strong> {{ scope.my_record.action_summary }}
+            </div>
+            <div class="flex items-center space-x-2">
+                <a href="{{ drp_portal_url }}" target="_blank" class="px-3 py-1.5 bg-white text-slate-900 hover:bg-slate-100 font-bold rounded-lg transition-colors flex items-center space-x-1.5">
+                    <i class="fa-brands fa-google text-red-500"></i>
+                    <span>Open DRP</span>
+                </a>
+                <a href="{{ credly_url }}" target="_blank" class="px-3 py-1.5 bg-teal-500 text-white hover:bg-teal-600 font-bold rounded-lg transition-colors flex items-center space-x-1.5">
+                    <i class="fa-solid fa-certificate"></i>
+                    <span>Credly</span>
+                </a>
+                <a href="{{ drp_attribution_url }}" target="_blank" class="px-3 py-1.5 bg-emerald-500 text-white hover:bg-emerald-600 font-bold rounded-lg transition-colors flex items-center space-x-1.5">
+                    <i class="fa-solid fa-table"></i>
+                    <span>DRP Attribution</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── TEAM TABLE & FILTERS (Visible to Managers & Leaders) ─────────── -->
+    {% if scope.is_manager or current_role in ['owner', 'editor', 'leader'] %}
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex justify-between items-center">
+            <h3 class="font-bold text-slate-900 text-base">
+                {% if current_role in ['owner', 'editor', 'leader'] %}
+                All Engineering Staff ({{ employees | length }})
+                {% else %}
+                Your Direct Reporting Team ({{ employees | length }} Engineers)
+                {% endif %}
+            </h3>
+            <span class="text-xs text-slate-500">Only authorized team members are shown</span>
+        </div>
+
+        <!-- Filter Form -->
+        <form method="GET" action="{{ url_for('employees') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <!-- Tier Filter -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Tier Stage</label>
+                <select name="tier" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-blue-500 font-medium">
+                    <option value="All" {% if selected_tier == 'All' %}selected{% endif %}>All Tiers</option>
+                    {% for t in filters.tiers %}
+                    <option value="{{ t }}" {% if selected_tier == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Manager Filter (Disabled if individual manager) -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Direct Manager</label>
+                <select name="manager" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-blue-500 font-medium">
+                    <option value="All" {% if selected_manager == 'All' %}selected{% endif %}>All Managers</option>
+                    {% for m in filters.managers %}
+                    <option value="{{ m }}" {% if selected_manager == m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Cluster Filter -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Cluster / Portfolio</label>
+                <select name="cluster" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-blue-500 font-medium">
+                    <option value="All" {% if selected_cluster == 'All' %}selected{% endif %}>All Clusters</option>
+                    {% for c in filters.clusters %}
+                    <option value="{{ c }}" {% if selected_cluster == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Product Filter -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Product Area</label>
+                <select name="product" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-blue-500 font-medium">
+                    <option value="All" {% if selected_product == 'All' %}selected{% endif %}>All Products</option>
+                    {% for p in filters.products %}
+                    <option value="{{ p }}" {% if selected_product == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Search & Actions -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Search Team</label>
+                <div class="flex space-x-1">
+                    <input type="text" name="search" value="{{ search_query }}" placeholder="Name, ID, Email..." class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="px-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    {% if selected_tier != 'All' or selected_manager != 'All' or selected_cluster != 'All' or selected_product != 'All' or search_query %}
+                    <a href="{{ url_for('employees') }}" class="px-2.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition-colors flex items-center justify-center" title="Reset Filters">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Employee Table -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                    <tr>
+                        <th class="py-3.5 px-4">Employee ID & Name</th>
+                        <th class="py-3.5 px-4">Cluster / Practice</th>
+                        <th class="py-3.5 px-4">Direct Manager</th>
+                        <th class="py-3.5 px-4">Primary Product</th>
+                        <th class="py-3.5 px-4 text-center">Score</th>
+                        <th class="py-3.5 px-4 text-center">Current Tier</th>
+                        <th class="py-3.5 px-4">Action Roadmap</th>
+                        <th class="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for emp in employees %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-slate-900">{{ emp.name }}</div>
+                            <div class="text-[11px] text-slate-400 font-mono">{{ emp.employee_id }} • {{ emp.email }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="font-medium text-slate-700">{{ emp.cluster }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="text-slate-700">{{ emp.manager }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">
+                                {{ emp.product }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-center font-mono font-bold text-slate-800">
+                            {{ emp.score }}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            {% if emp.normalized_tier == 'Tier 1' %}
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Tier 1</span>
+                            {% elif emp.normalized_tier == 'Tier 2' %}
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">Tier 2</span>
+                            {% elif emp.normalized_tier == 'Tier 3' %}
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Tier 3</span>
+                            {% elif emp.normalized_tier == 'Tier 4' and emp.score > 0 %}
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">Tier 4</span>
+                            {% elif emp.score == 0 %}
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">Score 0.0</span>
+                            {% else %}
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{{ emp.normalized_tier }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="text-[11px] font-semibold text-slate-800">{{ emp.target_tier }}</div>
+                            <div class="text-[10px] text-slate-500">{{ emp.action_summary }}</div>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <button onclick="openEmployeeModal('{{ emp.employee_id }}')" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg transition-colors border border-blue-200 flex items-center space-x-1 ml-auto">
+                                <i class="fa-solid fa-route"></i>
+                                <span>Action Plan</span>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+</div>
+
+<!-- Employee Action Plan Modal -->
+<div id="empModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl text-white flex items-center justify-center text-lg font-bold" style="background-color: #30496D;">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-base" id="modalEmpName">Loading...</h3>
+                    <p class="text-xs text-slate-500 font-mono" id="modalEmpMeta"></p>
+                </div>
+            </div>
+            <button onclick="closeEmployeeModal()" class="text-slate-400 hover:text-slate-700 text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-6 text-xs">
+            <!-- Key Metrics Grid -->
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span class="text-slate-500 block">Current Score</span>
+                    <strong class="text-base text-slate-900 font-mono font-bold mt-0.5 block" id="modalEmpScore">0.0</strong>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <span class="text-blue-600 block">Current Tier</span>
+                    <strong class="text-base text-blue-800 font-bold mt-0.5 block" id="modalEmpTier">-</strong>
+                </div>
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                    <span class="text-amber-600 block">Next Milestone</span>
+                    <strong class="text-base text-amber-800 font-bold mt-0.5 block" id="modalEmpTarget">-</strong>
+                </div>
+            </div>
+
+            <!-- Scorecard Details -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
+                <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Attribution & Roadmap Details</h4>
+                <div class="grid grid-cols-2 gap-2 text-slate-600">
+                    <div><strong>Direct Manager:</strong> <span id="modalEmpManager"></span></div>
+                    <div><strong>Cluster / Portfolio:</strong> <span id="modalEmpCluster"></span></div>
+                    <div><strong>Product Specialization:</strong> <span id="modalEmpProduct"></span></div>
+                    <div><strong>DRP Registration ID:</strong> <span id="modalEmpDrpId" class="font-mono"></span></div>
+                </div>
+            </div>
+
+            <!-- Action Guidance & Helpful Resources -->
+            <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100 space-y-3">
+                <h4 class="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center space-x-1.5">
+                    <i class="fa-solid fa-graduation-cap text-blue-600"></i>
+                    <span>Next Steps & Advancement Resources</span>
+                </h4>
+                <p class="text-slate-600 text-xs leading-relaxed">
+                    To upgrade your competency tier, complete product-specific skill badges, labs, or certifications mapped to your primary focus area. Ensure your Credly profile is linked with your Onix email as a secondary email.
+                </p>
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <a href="{{ drp_portal_url }}" target="_blank" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg border border-slate-200 shadow-sm flex items-center space-x-1.5 transition-colors">
+                        <i class="fa-brands fa-google text-red-500"></i>
+                        <span>Google DRP Portal</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400"></i>
+                    </a>
+                    <a href="{{ credly_url }}" target="_blank" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-teal-800 font-bold text-xs rounded-lg border border-teal-200 shadow-sm flex items-center space-x-1.5 transition-colors">
+                        <i class="fa-solid fa-certificate text-teal-600"></i>
+                        <span>Credly Sign In</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-teal-400"></i>
+                    </a>
+                    <a href="{{ drp_attribution_url }}" target="_blank" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-emerald-800 font-bold text-xs rounded-lg border border-emerald-200 shadow-sm flex items-center space-x-1.5 transition-colors">
+                        <i class="fa-solid fa-table text-emerald-600"></i>
+                        <span>DRP Attribution Sheet</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-emerald-400"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── OTP AUTHENTICATION CLIENT ─────────────────────────────────────────────
+    let pendingAuthEmail = '';
+
+    async function sendAuthOTP() {
+        const email = document.getElementById('authEmailInput').value.trim();
+        const errBox = document.getElementById('authErrorBox');
+        errBox.classList.add('hidden');
+
+        if (!email || !email.includes('@')) {
+            showAuthError('Please enter a valid email address.');
+            return;
+        }
+
+        const btn = document.getElementById('btnSendOtp');
+        const btnText = document.getElementById('btnSendOtpText');
+        btn.disabled = true;
+        btnText.innerText = 'Sending Code...';
+
+        try {
+            const res = await fetch('/api/auth/send_otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (data.success) {
+                pendingAuthEmail = email;
+                document.getElementById('stepOtp').classList.remove('hidden');
+                document.getElementById('otpSentNotice').innerText = `Verification code sent to ${email}. Check your inbox!`;
+                btnText.innerText = 'Code Sent!';
+            } else {
+                showAuthError(data.error || 'Failed to send verification code.');
+                btnText.innerText = 'Send Verification Code';
+                btn.disabled = false;
+            }
+        } catch (e) {
+            showAuthError('Network error. Please try again.');
+            btnText.innerText = 'Send Verification Code';
+            btn.disabled = false;
+        }
+    }
+
+    async function verifyAuthOTP() {
+        const otp = document.getElementById('authOtpInput').value.trim();
+        const errBox = document.getElementById('authErrorBox');
+        errBox.classList.add('hidden');
+
+        if (!otp || otp.length < 6) {
+            showAuthError('Please enter the 6-digit verification code.');
+            return;
+        }
+
+        const btn = document.getElementById('btnVerifyOtp');
+        const btnText = document.getElementById('btnVerifyOtpText');
+        btn.disabled = true;
+        btnText.innerText = 'Verifying...';
+
+        try {
+            const res = await fetch('/api/auth/verify_otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: pendingAuthEmail, otp })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                showAuthError(data.error || 'Invalid verification code.');
+                btnText.innerText = 'Verify & Open Employee Hub';
+                btn.disabled = false;
+            }
+        } catch (e) {
+            showAuthError('Verification failed. Please try again.');
+            btnText.innerText = 'Verify & Open Employee Hub';
+            btn.disabled = false;
+        }
+    }
+
+    function resendAuthOTP() {
+        sendAuthOTP();
+    }
+
+    function showAuthError(msg) {
+        const errBox = document.getElementById('authErrorBox');
+        document.getElementById('authErrorMsg').innerText = msg;
+        errBox.classList.remove('hidden');
+    }
+
+    // ── EMPLOYEE ACTION MODAL ────────────────────────────────────────────────
+    async function openEmployeeModal(empId) {
+        document.getElementById('empModal').classList.remove('hidden');
+        document.getElementById('modalEmpName').innerText = 'Loading...';
+        
+        try {
+            const res = await fetch(`/api/employee/${empId}`);
+            const data = await res.json();
+            const emp = data.employee;
+
+            document.getElementById('modalEmpName').innerText = emp.name || 'Engineer';
+            document.getElementById('modalEmpMeta').innerText = `${emp.employee_id} • ${emp.email}`;
+            document.getElementById('modalEmpScore').innerText = emp.score;
+            document.getElementById('modalEmpTier').innerText = emp.normalized_tier;
+            document.getElementById('modalEmpTarget').innerText = emp.target_tier;
+            document.getElementById('modalEmpManager').innerText = emp.manager;
+            document.getElementById('modalEmpCluster').innerText = emp.cluster;
+            document.getElementById('modalEmpProduct').innerText = emp.product;
+            document.getElementById('modalEmpDrpId').innerText = emp.drp_id || 'Pending Registration';
+        } catch (e) {
+            console.error(e);
+            document.getElementById('modalEmpName').innerText = 'Error loading profile';
+        }
+    }
+
+    function closeEmployeeModal() {
+        document.getElementById('empModal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

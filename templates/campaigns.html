@@ -1,0 +1,710 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-1 rounded-md bg-blue-500/20 text-blue-300 text-xs font-bold uppercase tracking-wider border border-blue-400/30">Email Automation Engine</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1">Targeted DRP Email Campaigns</h1>
+            <p class="text-sm text-blue-200 mt-1 max-w-2xl">Customize complete email templates per tier, preview personalization tokens, and dispatch bulk campaigns with automated progress tracking and failure retry.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openEditorShare()" class="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 backdrop-blur-sm transition-all flex items-center space-x-1.5 shadow-sm">
+                <i class="fa-solid fa-user-plus text-blue-300"></i>
+                <span>Grant Teammate Access</span>
+            </button>
+            <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-2 rounded-xl border border-emerald-400/30 font-bold flex items-center space-x-1.5">
+                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                <span>Owner / Editor Active</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Tier Selector Tabs (6 Cohorts) -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        
+        <!-- 1. DRP ID Not Created -->
+        <a href="{{ url_for('campaigns', tier='DRP ID Not Created') }}" class="p-3.5 rounded-xl border transition-all text-left {% if target_tier == 'DRP ID Not Created' %}bg-rose-50 border-rose-400 shadow-md ring-2 ring-rose-400{% else %}bg-white border-slate-200 hover:border-slate-300{% endif %}">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[11px] font-bold uppercase text-rose-700">Pending</span>
+                <span class="text-[9px] bg-rose-100 text-rose-800 font-extrabold px-1 py-0.5 rounded">Setup Req</span>
+            </div>
+            <h4 class="font-extrabold text-slate-900 text-xs truncate">ID Not Created</h4>
+            <p class="text-[10px] text-slate-500 mt-0.5">Urgent setup</p>
+        </a>
+
+        <!-- 2. DRP IDs with 0 Score -->
+        <a href="{{ url_for('campaigns', tier='DRP IDs with 0 Score') }}" class="p-3.5 rounded-xl border transition-all text-left {% if target_tier == 'DRP IDs with 0 Score' %}bg-rose-50 border-rose-400 shadow-md ring-2 ring-rose-400{% else %}bg-white border-slate-200 hover:border-slate-300{% endif %}">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[11px] font-bold uppercase text-rose-700">Score 0.0</span>
+                <span class="text-[9px] bg-rose-100 text-rose-800 font-extrabold px-1 py-0.5 rounded">Action</span>
+            </div>
+            <h4 class="font-extrabold text-slate-900 text-xs truncate">0 Score IDs</h4>
+            <p class="text-[10px] text-slate-500 mt-0.5">Activate points</p>
+        </a>
+
+        <!-- 3. Tier 4 -->
+        <a href="{{ url_for('campaigns', tier='Tier 4') }}" class="p-3.5 rounded-xl border transition-all text-left {% if target_tier == 'Tier 4' %}bg-purple-50 border-purple-400 shadow-md ring-2 ring-purple-400{% else %}bg-white border-slate-200 hover:border-slate-300{% endif %}">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[11px] font-bold uppercase text-purple-700">Tier 4</span>
+                <span class="text-[9px] bg-purple-100 text-purple-800 font-extrabold px-1 py-0.5 rounded">Target: T3</span>
+            </div>
+            <h4 class="font-extrabold text-slate-900 text-xs truncate">Jump to Tier 3</h4>
+            <p class="text-[10px] text-slate-500 mt-0.5">Reach 20+ pts</p>
+        </a>
+
+        <!-- 4. Tier 3 -->
+        <a href="{{ url_for('campaigns', tier='Tier 3') }}" class="p-3.5 rounded-xl border transition-all text-left {% if target_tier == 'Tier 3' %}bg-amber-50 border-amber-400 shadow-md ring-2 ring-amber-400{% else %}bg-white border-slate-200 hover:border-slate-300{% endif %}">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[11px] font-bold uppercase text-amber-700">Tier 3</span>
+                <span class="text-[9px] bg-amber-100 text-amber-800 font-extrabold px-1 py-0.5 rounded">Target: T2</span>
+            </div>
+            <h4 class="font-extrabold text-slate-900 text-xs truncate">Jump to Tier 2</h4>
+            <p class="text-[10px] text-slate-500 mt-0.5">Reach 35+ pts</p>
+        </a>
+
+        <!-- 5. Tier 2 -->
+        <a href="{{ url_for('campaigns', tier='Tier 2') }}" class="p-3.5 rounded-xl border transition-all text-left {% if target_tier == 'Tier 2' %}bg-blue-50 border-blue-400 shadow-md ring-2 ring-blue-400{% else %}bg-white border-slate-200 hover:border-slate-300{% endif %}">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[11px] font-bold uppercase text-blue-700">Tier 2</span>
+                <span class="text-[9px] bg-blue-100 text-blue-800 font-extrabold px-1 py-0.5 rounded">Target: T1</span>
+            </div>
+            <h4 class="font-extrabold text-slate-900 text-xs truncate">Sprint to Tier 1</h4>
+            <p class="text-[10px] text-slate-500 mt-0.5">Reach 49+ pts</p>
+        </a>
+
+        <!-- 6. Tier 1 -->
+        <a href="{{ url_for('campaigns', tier='Tier 1') }}" class="p-3.5 rounded-xl border transition-all text-left {% if target_tier == 'Tier 1' %}bg-emerald-50 border-emerald-400 shadow-md ring-2 ring-emerald-400{% else %}bg-white border-slate-200 hover:border-slate-300{% endif %}">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[11px] font-bold uppercase text-emerald-700">Tier 1</span>
+                <span class="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1 py-0.5 rounded">Mastery</span>
+            </div>
+            <h4 class="font-extrabold text-slate-900 text-xs truncate">Mastery</h4>
+            <p class="text-[10px] text-slate-500 mt-0.5">Recognition</p>
+        </a>
+
+    </div>
+
+    <!-- Main Grid: Send Panel + Email Preview & Editor -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- LEFT: Send Panel -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 h-fit">
+            
+            <div>
+                <h3 class="font-bold text-slate-900 text-base">Campaign Controls</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Target Cohort: <strong class="text-slate-800">{{ target_tier }}</strong></p>
+            </div>
+
+            <!-- Stats -->
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-600 font-medium">Total Recipients</span>
+                    <strong class="text-2xl text-blue-700 font-black">{{ employee_count }}</strong>
+                </div>
+                <div class="flex justify-between items-center text-xs text-slate-600 font-medium">
+                    <span>Personalized Content</span>
+                    <span class="text-emerald-700 font-bold"><i class="fa-solid fa-check"></i> Per-person tokens</span>
+                </div>
+                <div class="flex justify-between items-center text-xs text-slate-600 font-medium">
+                    <span>Delivery Channel</span>
+                    <span class="font-bold text-slate-800"><i class="fa-brands fa-google text-red-500 mr-1"></i>Gmail SMTP</span>
+                </div>
+            </div>
+
+            {% if employee_count == 0 %}
+            <div class="p-6 bg-slate-50 rounded-xl border border-dashed border-slate-300 text-center text-slate-400 text-xs">
+                <i class="fa-solid fa-inbox text-3xl mb-2 block"></i>
+                No engineers currently in this tier cohort.
+            </div>
+            
+            {% else %}
+            <!-- BIG SEND BUTTON -->
+            <button id="mainSendBtn" onclick="startBulkCampaign()" 
+                    class="w-full py-4 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white font-extrabold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2.5 border border-red-500/30 cursor-pointer">
+                <i class="fa-solid fa-paper-plane text-base"></i>
+                <span id="mainSendBtnText">Send Direct Email to All {{ employee_count }} Engineers</span>
+            </button>
+            <p class="text-[11px] text-slate-400 text-center -mt-2">Throttled Delivery • Full HTML • Auto Reconnect</p>
+            {% endif %}
+
+            <!-- Live Background Progress Bar & Status -->
+            <div id="jobProgressBox" class="hidden p-4 rounded-xl border border-blue-200 bg-blue-50/70 text-xs text-blue-900 space-y-3 transition-all">
+                <div class="flex items-center justify-between">
+                    <span id="jobTitle" class="font-bold flex items-center space-x-1.5 text-slate-900">
+                        <i class="fa-solid fa-circle-notch fa-spin text-blue-600" id="jobSpinner"></i>
+                        <span id="jobLabel">Dispatching emails...</span>
+                    </span>
+                    <span id="jobCountDisplay" class="font-mono font-bold text-blue-800">0 / {{ employee_count }}</span>
+                </div>
+                
+                <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                    <div id="jobProgressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+
+                <!-- Summary & Retry Box -->
+                <div id="jobResultSummary" class="hidden pt-2 border-t border-blue-200/60 space-y-2"></div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: Email Preview & Live Direct In-Email Editor -->
+        <div class="lg:col-span-2 space-y-4">
+            
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                
+                <!-- Header / Controls Bar -->
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-100 pb-4">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base">Direct Email Content Editor & Preview</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Target Cohort: <strong class="text-blue-700">{{ target_tier }}</strong>
+                            {% if sample_emp %} • Sample: <strong class="text-slate-800">{{ sample_emp.name }}</strong> ({{ sample_emp.email }}){% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="saveLiveTemplate()" id="topSaveBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center space-x-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span id="topSaveBtnText">Save for All {{ target_tier }} Recipients</span>
+                        </button>
+
+                        {% if sample_email %}
+                        <a href="{{ sample_email.gmail_url }}" target="_blank"
+                           class="inline-flex items-center px-3.5 py-2 bg-red-500 hover:bg-red-600 text-white font-bold text-xs rounded-xl shadow-sm transition-colors space-x-1.5 shrink-0">
+                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
+                            </svg>
+                            <span>Open in Gmail</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Subject Line Editor Bar -->
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider shrink-0 flex items-center space-x-1">
+                        <i class="fa-solid fa-heading text-blue-600"></i>
+                        <span>Subject Line:</span>
+                    </span>
+                    <input type="text" id="liveSubjectInput" value="{{ current_template.subject }}"
+                           class="flex-1 w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 font-bold text-slate-800 text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                           placeholder="Enter email subject line..." />
+                </div>
+
+                <!-- Quick Token Insertion Pills -->
+                <div class="px-3 py-2 bg-blue-50/70 rounded-xl border border-blue-100 flex flex-wrap items-center gap-1.5 text-xs text-blue-900">
+                    <span class="font-bold text-[11px] mr-1 flex items-center space-x-1">
+                        <i class="fa-solid fa-tags text-blue-600"></i>
+                        <span>Click to insert token:</span>
+                    </span>
+                    <button type="button" onclick="insertToken('{name}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 rounded-md border border-blue-200 text-blue-800 text-[11px] font-bold transition-colors cursor-pointer">{name}</button>
+                    <button type="button" onclick="insertToken('{score}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 rounded-md border border-blue-200 text-blue-800 text-[11px] font-bold transition-colors cursor-pointer">{score}</button>
+                    <button type="button" onclick="insertToken('{gap}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 rounded-md border border-blue-200 text-blue-800 text-[11px] font-bold transition-colors cursor-pointer">{gap}</button>
+                    <button type="button" onclick="insertToken('{target_tier}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 rounded-md border border-blue-200 text-blue-800 text-[11px] font-bold transition-colors cursor-pointer">{target_tier}</button>
+                    <button type="button" onclick="insertToken('{product}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 rounded-md border border-blue-200 text-blue-800 text-[11px] font-bold transition-colors cursor-pointer">{product}</button>
+                    <button type="button" onclick="insertToken('{manager}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 rounded-md border border-blue-200 text-blue-800 text-[11px] font-bold transition-colors cursor-pointer">{manager}</button>
+                </div>
+
+                <!-- DIRECT VISUAL EMAIL CARD (WYSIWYG In-Place Body Editor) -->
+                <div class="border border-slate-300 rounded-xl overflow-hidden bg-slate-50 shadow-inner">
+                    
+                    <!-- Email Card Outer Container -->
+                    <div class="max-w-[640px] mx-auto my-4 bg-white rounded-lg border border-slate-200 shadow-md overflow-hidden font-sans">
+                        
+                        <!-- 1. Email Header -->
+                        <div class="p-6 text-white text-left" style="background-color: #30496D;">
+                            <div class="text-xs uppercase tracking-wider font-semibold opacity-90 mb-1">L&D Enablement</div>
+                            <h2 class="text-xl font-bold m-0 leading-tight">Google DRP Tier Acceleration Drive</h2>
+                        </div>
+
+                        <!-- 2. Email Inner Content -->
+                        <div class="p-6 sm:p-7 space-y-4 text-slate-800 text-sm">
+                            
+                            <!-- Greeting -->
+                            <p class="text-base text-slate-900 m-0 font-medium">
+                                Hi <strong>{{ sample_emp.name if sample_emp else '{name}' }}</strong>,
+                            </p>
+
+                            <!-- IN-PLACE EDITABLE BODY SECTION -->
+                            <div class="my-3">
+                                <div class="flex items-center justify-between text-[11px] text-blue-700 font-bold mb-1.5">
+                                    <span class="flex items-center space-x-1">
+                                        <i class="fa-solid fa-pen text-blue-600"></i>
+                                        <span>Editable Email Message (Click & type directly inside):</span>
+                                    </span>
+                                    <span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-bold">Live In-Email Editor</span>
+                                </div>
+                                <textarea id="liveInEmailBody" rows="7" 
+                                    class="w-full p-4 bg-blue-50/20 hover:bg-blue-50/40 focus:bg-white border-2 border-dashed border-blue-300 focus:border-blue-600 rounded-xl text-slate-800 text-sm leading-relaxed outline-none transition-all font-sans resize-y shadow-inner"
+                                    placeholder="Type your official email message body here...">{{ current_template.body }}</textarea>
+                            </div>
+
+                            <!-- Current Tier Breakdown -->
+                            <div class="my-4">
+                                <h4 class="text-xs font-bold uppercase text-slate-600 tracking-wider mb-2">Current Tier Breakdown</h4>
+                                <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                    <div>• <strong class="text-emerald-700">Tier 1:</strong> 49+ points</div>
+                                    <div>• <strong style="color: #30496D;">Tier 2:</strong> 35 – 49 points</div>
+                                    <div>• <strong class="text-amber-700">Tier 3:</strong> 20 – 34 points</div>
+                                    <div>• <strong class="text-purple-700">Tier 4:</strong> 0 – 19 points</div>
+                                </div>
+                            </div>
+
+                            <!-- How to Earn Points Table -->
+                            <div class="my-4">
+                                <h4 class="text-xs font-bold uppercase text-slate-600 tracking-wider mb-1">How to Earn Points</h4>
+                                <p class="text-xs text-slate-500 mb-2">You can build your overall score through the following activities:</p>
+                                <div class="border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+                                    <table class="w-full text-left text-xs border-collapse">
+                                        <thead>
+                                            <tr class="bg-slate-100 border-b border-slate-200 font-bold text-slate-700">
+                                                <th class="py-2.5 px-3.5">Activity</th>
+                                                <th class="py-2.5 px-3.5">Points</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-200 text-slate-800">
+                                            <tr>
+                                                <td class="py-2.5 px-3.5">Other Cloud Provider Experience (max 4)</td>
+                                                <td class="py-2.5 px-3.5 font-bold">1 Point Per Year</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2.5 px-3.5">Project Deployed (max 51)</td>
+                                                <td class="py-2.5 px-3.5 font-bold">5 Points Each</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2.5 px-3.5">Skill Badges / Labs (max 15)</td>
+                                                <td class="py-2.5 px-3.5 font-bold">5 Points Each</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2.5 px-3.5">Technical Training (max 15)</td>
+                                                <td class="py-2.5 px-3.5 font-bold">5 Points Each</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2.5 px-3.5">Technical Certification (max 15)</td>
+                                                <td class="py-2.5 px-3.5 font-bold">Primary Cert for Product - 10 | Other GCP Cert - 5</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Critical Note on Product Score -->
+                            <div class="p-4 rounded-xl border-2 border-rose-300 bg-rose-50/50 text-xs text-slate-800 leading-relaxed space-y-1.5" style="border-left-width: 6px; border-left-color: #f35959;">
+                                <strong class="text-rose-600 font-extrabold uppercase tracking-wider block">CRITICAL NOTE ON PRODUCT SCORE ACCUMULATION:</strong>
+                                <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                                    <li>DRP scores are calculated using your highest score in a single product focus area; they are not cumulative across multiple products.</li>
+                                    <li>If your current badges/certifications are not reflecting in DRP, ensure you have an active Credly profile and have added your ONIX email as a secondary email, as DRP does not sync data directly through Google Skills.</li>
+                                    <li>Those in Product Engineering/sales may skip the project component and instead complete the learning modules to earn points and maintain an active profile.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Next Steps -->
+                            <div class="my-4">
+                                <h4 class="text-xs font-bold uppercase text-slate-600 tracking-wider mb-2">Next Steps</h4>
+                                <ol class="list-decimal pl-5 text-xs text-slate-700 space-y-1.5 leading-relaxed">
+                                    <li>Check your current primary product mapping in your <a href="https://delivery-readiness-portal.cloud.google/app/login" target="_blank" class="font-bold underline" style="color: #30496D;">DRP Profile</a> (Mapped: <strong>{{ sample_emp.product if sample_emp else '{product}' }}</strong>).</li>
+                                    <li>Review the <a href="https://docs.google.com/spreadsheets/d/18dCDJX27QVROXPPNghIC5F3VxzJ8cawXtOf3xgKtkAI/edit?gid=28087814#gid=28087814" target="_blank" class="font-bold underline" style="color: #30496D;">DRP Attribution Mapping Sheet</a> for your product pathways.</li>
+                                    <li>Complete your labs, trainings, or certifications to upgrade your tier.</li>
+                                </ol>
+                            </div>
+
+                            <!-- Closing Contact Box -->
+                            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/80 text-xs text-slate-700 leading-relaxed">
+                                <strong>Let's get everyone across the finish line to Tier 1!</strong> Reach out to L&D team if you have any questions regarding your mapped product or score calculations.
+                                <div class="mt-2 text-[11px] text-slate-500">
+                                    <strong>Contact:</strong> <a href="mailto:learninganddevelopment@onixnet.com" class="font-bold underline" style="color: #30496D;">learninganddevelopment@onixnet.com</a> (L&D Team)
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- 3. Email Footer -->
+                        <div class="bg-slate-100 p-4 text-center border-t border-slate-200 text-xs font-semibold text-slate-500">
+                            This communication is auto-generated by L&D team.
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Bottom Save Button -->
+                <button onclick="saveLiveTemplate()" id="bottomSaveBtn" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span id="bottomSaveBtnText">Save Changes for All {{ target_tier }} Recipients</span>
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ── CAMPAIGN DISPATCH HISTORY (DATE & TIER WISE LOG) ──────────────── -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+            <div>
+                <h3 class="font-bold text-slate-900 text-base">Campaign Dispatch History</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Date-wise and tier-wise log of dispatched email campaigns</p>
+            </div>
+            <span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200 self-start sm:self-auto">
+                {{ campaign_history|length }} Total Campaign Runs
+            </span>
+        </div>
+
+        {% if campaign_history and campaign_history|length > 0 %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                    <tr>
+                        <th class="py-3 px-4">Date & Time</th>
+                        <th class="py-3 px-4">Target Tier / Cohort</th>
+                        <th class="py-3 px-4 text-center">Delivered</th>
+                        <th class="py-3 px-4 text-center">Failed</th>
+                        <th class="py-3 px-4 text-center">Total Recipients</th>
+                        <th class="py-3 px-4">Dispatched By</th>
+                        <th class="py-3 px-4 text-right">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for run in campaign_history %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3 px-4 font-mono font-bold text-slate-800">{{ run.date }}</td>
+                        <td class="py-3 px-4"><span class="font-bold text-slate-900">{{ run.tier }}</span></td>
+                        <td class="py-3 px-4 text-center font-bold text-emerald-600">{{ run.sent_count }}</td>
+                        <td class="py-3 px-4 text-center font-bold {% if run.failed_count > 0 %}text-rose-600{% else %}text-slate-400{% endif %}">{{ run.failed_count }}</td>
+                        <td class="py-3 px-4 text-center font-bold text-slate-800">{{ run.total }}</td>
+                        <td class="py-3 px-4 text-slate-600">{{ run.sent_by }}</td>
+                        <td class="py-3 px-4 text-right">
+                            {% if run.failed_count == 0 %}
+                            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold rounded-md text-[11px]">
+                                <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Delivered
+                            </span>
+                            {% else %}
+                            <span class="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 font-bold rounded-md text-[11px]">
+                                {{ run.status }}
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-xs">
+            <i class="fa-solid fa-clock-rotate-left text-3xl mb-2 block text-slate-300"></i>
+            No previous campaigns dispatched yet. Dispatched campaigns will be automatically logged here date-wise and tier-wise.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Teammate Editor Share Modal -->
+<div id="editorShareModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 overflow-hidden">
+    <div class="flex items-center justify-between p-5 bg-gradient-to-r from-blue-900 to-indigo-900 text-white">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg">
+          <i class="fa-solid fa-user-pen text-blue-300"></i>
+        </div>
+        <div>
+          <h2 class="font-bold text-base">Grant Teammate Email Dispatch Access</h2>
+          <p class="text-xs text-blue-200">Authorized teammates can send campaigns from their laptops</p>
+        </div>
+      </div>
+      <button onclick="closeModal('editorShareModal')" class="text-slate-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Teammate Email Address</label>
+        <div class="flex gap-2">
+          <input id="editorEmailInput" type="email" placeholder="e.g. colleague@onixnet.com"
+            class="flex-1 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+          <button onclick="addEditorAccess()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors whitespace-nowrap shadow-sm flex items-center space-x-1.5">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add & Generate</span>
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Authorized Editors</label>
+        <div id="editorList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+      </div>
+      <div class="text-xs text-blue-900 bg-blue-50/80 rounded-xl p-3.5 border border-blue-200">
+        <p class="font-bold flex items-center space-x-1.5 mb-1"><i class="fa-solid fa-circle-info text-blue-600"></i><span>Access:</span></p>
+        <p class="text-[11px] text-blue-800 leading-relaxed">Teammates get full email dispatch access from their own laptops. You can revoke anytime.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    const targetTier = "{{ target_tier }}";
+    const totalCount = {{ employee_count }};
+    let activeJobId = null;
+    let pollInterval = null;
+
+    function insertToken(token) {
+        const textarea = document.getElementById('liveInEmailBody');
+        if (!textarea) return;
+        const start = textarea.selectionStart || 0;
+        const end = textarea.selectionEnd || 0;
+        const text = textarea.value;
+        textarea.value = text.substring(0, start) + token + text.substring(end);
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + token.length;
+    }
+
+    async function saveLiveTemplate() {
+        const subjectInput = document.getElementById('liveSubjectInput');
+        const bodyInput = document.getElementById('liveInEmailBody');
+        const topBtnText = document.getElementById('topSaveBtnText');
+        const btmBtnText = document.getElementById('bottomSaveBtnText');
+
+        const subject = subjectInput ? subjectInput.value.trim() : '';
+        const body = bodyInput ? bodyInput.value.trim() : '';
+
+        if (topBtnText) topBtnText.innerText = 'Saving Changes...';
+        if (btmBtnText) btmBtnText.innerText = 'Saving Changes...';
+
+        try {
+            const res = await fetch('/api/save_email_template', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tier: targetTier,
+                    subject,
+                    body
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (topBtnText) topBtnText.innerText = '✅ Saved for All Recipients!';
+                if (btmBtnText) btmBtnText.innerText = '✅ Saved for All Recipients!';
+                setTimeout(() => {
+                    if (topBtnText) topBtnText.innerText = `Save for All ${targetTier} Recipients`;
+                    if (btmBtnText) btmBtnText.innerText = `Save Changes for All ${targetTier} Recipients`;
+                }, 2500);
+            } else {
+                alert(data.error || 'Failed to save template.');
+                if (topBtnText) topBtnText.innerText = `Save for All ${targetTier} Recipients`;
+                if (btmBtnText) btmBtnText.innerText = `Save Changes for All ${targetTier} Recipients`;
+            }
+        } catch (e) {
+            alert('Error saving template: ' + e);
+            if (topBtnText) topBtnText.innerText = `Save for All ${targetTier} Recipients`;
+            if (btmBtnText) btmBtnText.innerText = `Save Changes for All ${targetTier} Recipients`;
+        }
+    }
+
+    // ── BULK DISPATCH WITH BACKGROUND PROGRESS POLLING ─────────────────────────
+    async function startBulkCampaign() {
+        if (totalCount === 0) {
+            alert('No recipients in this tier cohort.');
+            return;
+        }
+
+        const confirmMsg = `Are you sure you want to send official HTML emails to all ${totalCount} engineers in ${targetTier}?\n\nEmails will be dispatched in background via Google SMTP with full personalization tokens.`;
+        if (!confirm(confirmMsg)) return;
+
+        const btn = document.getElementById('mainSendBtn');
+        const btnText = document.getElementById('mainSendBtnText');
+        const progressBox = document.getElementById('jobProgressBox');
+        const bar = document.getElementById('jobProgressBar');
+        const countDisplay = document.getElementById('jobCountDisplay');
+        const jobLabel = document.getElementById('jobLabel');
+
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+        btnText.innerText = 'Starting Background Campaign...';
+
+        progressBox.classList.remove('hidden');
+        bar.style.width = '5%';
+        jobLabel.innerText = 'Initializing background mail worker...';
+        countDisplay.innerText = `0 / ${totalCount}`;
+
+        try {
+            const res = await fetch('/api/start_campaign_job', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tier: targetTier })
+            });
+            const data = await res.json();
+            if (data.success) {
+                activeJobId = data.job_id;
+                startJobPolling(activeJobId);
+            } else {
+                alert(data.error || 'Failed to start campaign.');
+                btn.disabled = false;
+                btn.classList.remove('opacity-60', 'cursor-not-allowed');
+                btnText.innerText = 'Send Direct Email to All ' + totalCount + ' Engineers';
+            }
+        } catch (e) {
+            alert('Network error starting campaign: ' + e);
+            btn.disabled = false;
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            btnText.innerText = 'Send Direct Email to All ' + totalCount + ' Engineers';
+        }
+    }
+
+    function startJobPolling(jobId) {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/campaign_job_status/${jobId}`);
+                const job = await res.json();
+                if (!job || job.error) return;
+
+                const pct = job.total > 0 ? Math.round((job.processed / job.total) * 100) : 0;
+                document.getElementById('jobProgressBar').style.width = `${pct}%`;
+                document.getElementById('jobCountDisplay').innerText = `${job.processed} / ${job.total} (${pct}%)`;
+                document.getElementById('jobLabel').innerText = `Sending: ${job.success_count} succeeded, ${job.failed_count} failed...`;
+
+                if (job.status === 'completed' || job.status === 'failed') {
+                    clearInterval(pollInterval);
+                    finishJobUI(job);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }, 1000);
+    }
+
+    function finishJobUI(job) {
+        const btn = document.getElementById('mainSendBtn');
+        const btnText = document.getElementById('mainSendBtnText');
+        const spinner = document.getElementById('jobSpinner');
+        const summary = document.getElementById('jobResultSummary');
+
+        spinner.className = job.failed_count === 0 ? 'fa-solid fa-circle-check text-emerald-600' : 'fa-solid fa-triangle-exclamation text-amber-600';
+        document.getElementById('jobLabel').innerText = `Campaign Finished: ${job.success_count} Delivered, ${job.failed_count} Failed.`;
+
+        summary.classList.remove('hidden');
+        let summaryHtml = `
+            <div class="flex justify-between items-center font-bold">
+                <span class="text-emerald-700">Delivered: ${job.success_count}</span>
+                <span class="${job.failed_count > 0 ? 'text-rose-700' : 'text-slate-500'}">Failed: ${job.failed_count}</span>
+            </div>
+        `;
+
+        if (job.failed_count > 0) {
+            summaryHtml += `
+                <div class="max-h-32 overflow-y-auto space-y-1 pr-1">
+                    ${job.failed_list.map(f => `
+                        <div class="p-1.5 bg-rose-100/60 rounded text-[10px] text-rose-900 flex justify-between">
+                            <span><strong>${f.name}</strong> (${f.email})</span>
+                            <span class="text-rose-600 font-semibold">${f.reason || 'Error'}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="resendFailedEmails('${job.id}')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg transition-all shadow-sm">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Resend to Failed Recipients (${job.failed_count})
+                </button>
+            `;
+        }
+
+        summary.innerHTML = summaryHtml;
+        btn.disabled = false;
+        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        btnText.innerText = 'Start Another Campaign';
+    }
+
+    async function resendFailedEmails(jobId) {
+        if (!confirm('Retry sending emails to all failed recipients?')) return;
+        try {
+            const res = await fetch('/api/resend_failed_emails', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job_id: jobId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                activeJobId = data.job_id;
+                startJobPolling(activeJobId);
+            } else {
+                alert(data.error || 'Failed to retry.');
+            }
+        } catch (e) {
+            alert('Error retrying: ' + e);
+        }
+    }
+
+    // ── EDITOR SHARE MODAL ──────────────────────────────────────────────────
+    function openEditorShare() {
+        const m = document.getElementById('editorShareModal');
+        if (m) { m.classList.remove('hidden'); loadEditors(); }
+    }
+    function closeModal(id) {
+        const m = document.getElementById(id);
+        if (m) m.classList.add('hidden');
+    }
+    document.getElementById('editorShareModal').addEventListener('click', function(e){ if(e.target===this) closeModal('editorShareModal'); });
+
+    async function loadEditors() {
+        try {
+            const res = await fetch('/api/access/editors');
+            const data = await res.json();
+            const list = document.getElementById('editorList');
+            if (!list) return;
+            if (!data.editors || data.editors.length === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-400 text-center py-3 bg-slate-50 rounded-xl border">No teammates added yet.</p>';
+                return;
+            }
+            list.innerHTML = data.editors.map(e => `
+                <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-3 gap-2">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-slate-900 truncate">${e.email}</p>
+                        <input type="text" readonly value="${e.link}" class="w-full text-[11px] font-mono text-slate-500 bg-transparent border-0 outline-none truncate mt-0.5" />
+                    </div>
+                    <div class="flex gap-1.5 shrink-0">
+                        <button onclick="copyText('${e.link}', this)" class="px-2.5 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-bold rounded-lg transition-colors flex items-center space-x-1">
+                            <i class="fa-regular fa-copy"></i><span>Copy</span>
+                        </button>
+                        <button onclick="removeEditorAccess('${e.email}')" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-lg transition-colors">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) { console.error(err); }
+    }
+
+    async function addEditorAccess() {
+        const input = document.getElementById('editorEmailInput');
+        const email = input ? input.value.trim() : '';
+        if (!email) { alert('Please enter a valid email.'); return; }
+        try {
+            const res = await fetch('/api/access/add_editor', {
+                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email})
+            });
+            const data = await res.json();
+            if (data.success) { input.value = ''; loadEditors(); }
+            else alert(data.error || 'Failed to add');
+        } catch (err) { alert('Error: ' + err); }
+    }
+
+    async function removeEditorAccess(email) {
+        if (!confirm(`Revoke access for ${email}?`)) return;
+        try {
+            await fetch('/api/access/remove_editor', {
+                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email})
+            });
+            loadEditors();
+        } catch (err) { console.error(err); }
+    }
+
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Copied!</span>';
+            setTimeout(() => { btn.innerHTML = orig; }, 2000);
+        });
+    }
+</script>
+{% endblock %}

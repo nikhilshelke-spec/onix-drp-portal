@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+*.log
+cloudflared.exe
+.env
+.venv
+env/
+venv/

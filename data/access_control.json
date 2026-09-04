@@ -1,0 +1,18 @@
+{
+  "leaders": {
+    "_rY5T5E-ABrcRxWvtzBx0hupPjk": {
+      "email": "tanaya.sankapal@onixnet.com",
+      "added_at": "2026-08-24T13:27:14.570049",
+      "added_by": "nikhil.shelke@onixnet.com"
+    }
+  },
+  "employee_token": "emp-onix-drp-2026",
+  "editors": {
+    "W69iQpEFoTYX1IGY8af7mUHDWNU": {
+      "email": "prasad.kulkarni1@onixnet.com",
+      "role": "editor",
+      "added_at": "2026-08-24T16:50:03.472785",
+      "added_by": "nikhil.shelke@onixnet.com"
+    }
+  }
+}

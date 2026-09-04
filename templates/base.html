@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Readiness Portal Executive Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#EEF2FF',
+                            100: '#E0E7FF',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                            800: '#1E40AF',
+                            900: '#1E3A8A',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased flex flex-col min-h-screen">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Official Onix Brand Logo -->
+                <a href="{{ url_for('dashboard') if current_role != 'user' else url_for('employees') }}" class="flex items-center space-x-2">
+                    <img src="/static/img/Onix-Logo.svg" alt="ONIX" class="h-8 w-auto">
+                </a>
+
+                <!-- Navigation Links -->
+                <nav class="hidden md:flex space-x-1 items-center">
+                    {% if current_role in ['owner', 'editor', 'leader'] %}
+                    <a href="{{ url_for('dashboard') }}" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors {% if page == 'dashboard' %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <i class="fa-solid fa-chart-pie mr-1.5"></i> Executive Dashboard
+                    </a>
+                    {% endif %}
+
+                    <a href="{{ url_for('employees') }}" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors {% if page == 'employees' %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <i class="fa-solid fa-users mr-1.5"></i> Employee Hub
+                    </a>
+
+                    {% if current_role in ['owner', 'editor'] %}
+                    <a href="{{ url_for('campaigns') }}" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors {% if page == 'campaigns' %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <i class="fa-solid fa-paper-plane mr-1.5"></i> Email Automation
+                    </a>
+                    {% endif %}
+
+                    {% if current_role in ['owner', 'editor'] %}
+                    <a href="{{ url_for('sync_page') }}" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors {% if page == 'sync' %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Data Sync & Upload
+                    </a>
+                    {% endif %}
+                </nav>
+
+                <!-- Action Controls & Role Badge -->
+                <div class="flex items-center space-x-2">
+                    
+                    {% if current_role == 'owner' %}
+                    <!-- Share Buttons (Visible ONLY to Owner) -->
+                    <button onclick="openLeaderShare()" class="hidden lg:inline-flex items-center px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200 transition-colors shadow-sm" title="Share with Leadership">
+                        <i class="fa-solid fa-user-tie mr-1.5 text-indigo-600"></i> Share Leadership
+                    </button>
+                    <button onclick="openEmployeeShare()" class="hidden lg:inline-flex items-center px-2.5 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors shadow-sm" title="Share with Employees">
+                        <i class="fa-solid fa-share-nodes mr-1.5 text-emerald-600"></i> Share Employee Hub
+                    </button>
+
+                    <!-- Clean Owner Tag -->
+                    <div class="px-3 py-1.5 bg-slate-100 text-slate-800 rounded-lg border border-slate-200 text-xs font-bold flex items-center space-x-1.5">
+                        <i class="fa-solid fa-user-check text-blue-600 text-xs"></i>
+                        <span>Owner: Nikhil Shelke</span>
+                    </div>
+
+                    {% elif current_role == 'editor' %}
+                    <div class="px-3 py-1.5 bg-blue-50 text-blue-800 rounded-lg border border-blue-200 text-xs font-bold flex items-center space-x-1.5">
+                        <i class="fa-solid fa-pen-to-square text-blue-600 text-xs"></i>
+                        <span>Editor Access</span>
+                    </div>
+
+                    {% elif current_role == 'leader' %}
+                    <div class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-xs font-bold flex items-center space-x-1.5">
+                        <i class="fa-solid fa-chart-line text-slate-600 text-xs"></i>
+                        <span>Executive View</span>
+                    </div>
+
+                    {% else %}
+                    <div class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-xs font-bold flex items-center space-x-1.5">
+                        <i class="fa-solid fa-user text-slate-600 text-xs"></i>
+                        <span>Employee Hub</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Quick External Links -->
+                    <a href="{{ drp_portal_url }}" target="_blank" class="hidden sm:inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200">
+                        <i class="fa-brands fa-google text-red-500 mr-1.5"></i> DRP Login
+                        <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-slate-400 text-[10px]"></i>
+                    </a>
+                    <a href="{{ credly_url }}" target="_blank" class="hidden sm:inline-flex items-center px-3 py-1.5 text-xs font-semibold text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors border border-teal-200">
+                        <i class="fa-solid fa-certificate text-teal-600 mr-1.5"></i> Credly
+                    </a>
+                    <a href="{{ drp_attribution_url }}" target="_blank" class="hidden sm:inline-flex items-center px-3 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors border border-emerald-200">
+                        <i class="fa-solid fa-table text-emerald-600 mr-1.5"></i> DRP Attribution
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 space-y-2 sm:space-y-0">
+            <div>
+                &copy; 2026 <strong>Onix L&D Practice</strong> • Google Cloud Enablement.
+            </div>
+            <div class="flex items-center space-x-4">
+                <span><i class="fa-solid fa-bullseye text-emerald-500 mr-1"></i> Target: 100% Tier 1 Mastery</span>
+                <span><i class="fa-solid fa-shield-halved text-blue-500 mr-1"></i> DRP Framework Compliant</span>
+            </div>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+
+    {% if current_role in ['owner', 'editor'] %}
+    <!-- ── LEADER SHARE MODAL (Owner Only) ────────────────────────── -->
+    <div id="leaderShareModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 overflow-hidden">
+        <div class="flex items-center justify-between p-5 bg-gradient-to-r from-indigo-900 to-slate-900 text-white">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg">
+              <i class="fa-solid fa-user-shield text-indigo-300"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-base">Leadership Access Management</h2>
+              <p class="text-xs text-slate-300">Share Executive Dashboard with specific leaders</p>
+            </div>
+          </div>
+          <button onclick="closeModal('leaderShareModal')" class="text-slate-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="p-6 space-y-4">
+          <!-- Add Leader Form -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Authorize New Leader Email</label>
+            <div class="flex gap-2">
+              <input id="leaderEmailInput" type="email" placeholder="e.g. tanaya.sankapal@onixnet.com"
+                class="flex-1 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+              <button onclick="addLeaderAccess()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors whitespace-nowrap shadow-sm flex items-center space-x-1.5">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add & Generate</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Leader List -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Authorized Leaders & Direct Links</label>
+            <div id="leaderList" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+          </div>
+
+          <!-- Info Box -->
+          <div class="text-xs text-indigo-900 bg-indigo-50/80 rounded-xl p-3.5 border border-indigo-200 space-y-1">
+            <p class="font-bold flex items-center space-x-1.5">
+              <i class="fa-solid fa-circle-info text-indigo-600"></i>
+              <span>Security Rule:</span>
+            </p>
+            <p class="text-indigo-800 text-[11px] leading-relaxed">
+              Each authorized leader gets a <strong>unique private link</strong>. Only users with this link can view the Executive Dashboard and Employee Hub. Email Automation and Data Sync are hidden.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EMPLOYEE SHARE MODAL (Owner Only) ──────────────────────── -->
+    <div id="employeeShareModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 overflow-hidden">
+        <div class="flex items-center justify-between p-5 bg-gradient-to-r from-emerald-900 to-slate-900 text-white">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg">
+              <i class="fa-solid fa-share-nodes text-emerald-300"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-base">Share Employee Hub</h2>
+              <p class="text-xs text-emerald-200">Universal link for Onix team members</p>
+            </div>
+          </div>
+          <button onclick="closeModal('employeeShareModal')" class="text-slate-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Universal Employee Hub Link</label>
+            <div class="flex gap-2 items-center">
+              <input id="empLinkInput" type="text" readonly class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 bg-white font-mono" value="Loading..."/>
+              <button onclick="copyEmpLink()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center space-x-1 shrink-0">
+                <i class="fa-regular fa-copy"></i>
+                <span id="copyEmpBtnText">Copy Link</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-1.5">
+            <p class="font-bold flex items-center space-x-1.5 text-emerald-800">
+              <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+              <span>Employee Hub Privacy & Security:</span>
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-emerald-800 text-[11px] pl-1 font-medium">
+              <li>Requires 1-click email OTP verification on entry to safeguard privacy.</li>
+              <li>Employees see their individual <strong>Scorecard, Gap Points & Action Plan</strong>.</li>
+              <li>Managers see only the engineers who <strong>directly report</strong> to them.</li>
+              <li>Other teams and organizational score data are completely hidden.</li>
+            </ul>
+          </div>
+          
+          <p class="text-xs text-slate-500">You can share this link in emails or chats for team members to self-verify and access their scores.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SHARE MODAL SCRIPTS (Owner Only) ────────────────────────── -->
+    <script>
+    function openLeaderShare() {
+      const m = document.getElementById('leaderShareModal');
+      if (m) {
+        m.classList.remove('hidden');
+        loadLeaders();
+      }
+    }
+    function openEmployeeShare() {
+      const m = document.getElementById('employeeShareModal');
+      if (m) {
+        m.classList.remove('hidden');
+        loadEmpLink();
+      }
+    }
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.add('hidden');
+    }
+    
+    ['leaderShareModal','employeeShareModal','editorShareModal'].forEach(id => {
+      const m = document.getElementById(id);
+      if (m) {
+        m.addEventListener('click', function(e){ if(e.target===this) closeModal(id); });
+      }
+    });
+
+    async function loadLeaders() {
+      try {
+        const res = await fetch('/api/access/leaders');
+        const data = await res.json();
+        const list = document.getElementById('leaderList');
+        if (!list) return;
+        if (!data.leaders || data.leaders.length === 0) {
+          list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4 bg-slate-50 rounded-xl border border-slate-100">No leaders added yet. Add a leader email above.</p>';
+          return;
+        }
+        list.innerHTML = data.leaders.map(l => `
+          <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-3 gap-2">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <p class="text-xs font-bold text-slate-900 truncate">${l.email}</p>
+              </div>
+              <input type="text" readonly value="${l.link}" class="w-full text-[11px] font-mono text-slate-500 bg-transparent border-0 outline-none truncate mt-0.5" />
+            </div>
+            <div class="flex gap-1.5 shrink-0">
+              <button onclick="copyText('${l.link}', this)" class="px-2.5 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-xs font-bold rounded-lg transition-colors flex items-center space-x-1">
+                <i class="fa-regular fa-copy"></i>
+                <span>Copy</span>
+              </button>
+              <button onclick="removeLeaderAccess('${l.email}')" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-lg transition-colors">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function addLeaderAccess() {
+      const input = document.getElementById('leaderEmailInput');
+      const email = input ? input.value.trim() : '';
+      if (!email) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/access/add_leader', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({email})
+        });
+        const data = await res.json();
+        if (data.success) {
+          input.value = '';
+          loadLeaders();
+        } else {
+          alert(data.error || 'Failed to add leader');
+        }
+      } catch (err) {
+        alert('Error adding leader: ' + err);
+      }
+    }
+
+    async function removeLeaderAccess(email) {
+      if (!confirm(`Remove CEO Dashboard access for ${email}?`)) return;
+      try {
+        await fetch('/api/access/remove_leader', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({email})
+        });
+        loadLeaders();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadEmpLink() {
+      try {
+        const res = await fetch('/api/access/employee_link');
+        const data = await res.json();
+        const input = document.getElementById('empLinkInput');
+        if (input) input.value = data.link || (window.location.origin + '/join/employee/emp-onix-drp-2026');
+      } catch (err) {
+        const input = document.getElementById('empLinkInput');
+        if (input) input.value = window.location.origin + '/join/employee/emp-onix-drp-2026';
+      }
+    }
+
+    function copyEmpLink() {
+      const input = document.getElementById('empLinkInput');
+      if (!input) return;
+      navigator.clipboard.writeText(input.value).then(() => {
+        const btnText = document.getElementById('copyEmpBtnText');
+        if (btnText) btnText.innerText = 'Copied!';
+        setTimeout(() => { if (btnText) btnText.innerText = 'Copy Link'; }, 2000);
+      });
+    }
+
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Copied!</span>';
+        setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+      });
+    }
+    </script>
+    {% endif %}
+
+</body>
+</html>

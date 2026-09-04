@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Executive Header Banner (Themed with #30496D & #f35959) -->
+    <div class="rounded-2xl p-6 text-white shadow-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border border-[#30496D]/40" style="background: linear-gradient(135deg, #30496D 0%, #1e2f47 100%);">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Delivery Readiness Portal Executive Dashboard</h1>
+            <div class="mt-2 space-y-0.5">
+                <p class="text-sm text-slate-200">Executive overview of technical competency tiers across Onix.</p>
+                <p class="text-sm text-slate-100 font-medium">
+                    <span class="font-bold px-2 py-0.5 rounded text-white text-xs mr-1" style="background-color: #f35959;">Goal:</span>
+                    Drive 100% of technical staff to Tier 1 Mastery (49+ points).
+                </p>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            {% if current_role == 'owner' %}
+            <!-- Share Leadership Link Button -->
+            <button onclick="openLeaderShare()" class="px-3.5 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2 border border-white/20 hover:brightness-110" style="background-color: #30496D;">
+                <i class="fa-solid fa-user-tie text-slate-200"></i>
+                <span>Share Leadership Link</span>
+            </button>
+            {% endif %}
+
+            <a href="{{ url_for('export_csv') }}" class="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl backdrop-blur-sm transition-all flex items-center space-x-2 border border-white/15">
+                <i class="fa-solid fa-download"></i>
+                <span>Export Report</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Executive KPI Grid (6 Compact Balanced Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+
+        <!-- 1. Tier 1 -->
+        <div class="bg-white p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black text-emerald-800 uppercase tracking-tight">Tier 1</h4>
+                        <p class="text-[11px] font-bold text-emerald-600 mt-0.5">(49+ Points)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 text-xs">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black text-emerald-700 leading-none">{{ kpis.tier1_count }}</h3>
+                    <p class="text-[11px] font-bold text-emerald-600 mt-1">{{ kpis.tier1_pct }}% of active team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-emerald-100 flex justify-between items-center text-[11px]">
+                <span class="text-emerald-700 font-semibold">Requirement</span>
+                <span class="font-black text-emerald-800">49+ Points</span>
+            </div>
+        </div>
+
+        <!-- 2. Tier 2 -->
+        <div class="bg-white p-3.5 rounded-xl border shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between" style="border-color: #30496D; background-color: #F6F9FC;">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black uppercase tracking-tight" style="color: #30496D;">Tier 2</h4>
+                        <p class="text-[11px] font-bold mt-0.5" style="color: #4A6D9C;">(35 – 49 pts)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 text-xs" style="background-color: #30496D;">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black leading-none" style="color: #30496D;">{{ kpis.tier2_count }}</h3>
+                    <p class="text-[11px] font-bold mt-1" style="color: #4A6D9C;">{{ kpis.tier2_pct }}% of active team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-slate-200 flex justify-between items-center text-[11px]">
+                <span class="text-slate-600 font-semibold">Next Target</span>
+                <span class="font-black" style="color: #30496D;">Tier 1 (49+ pts)</span>
+            </div>
+        </div>
+
+        <!-- 3. Tier 3 -->
+        <div class="bg-white p-3.5 rounded-xl border border-amber-200 bg-amber-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black text-amber-800 uppercase tracking-tight">Tier 3</h4>
+                        <p class="text-[11px] font-bold text-amber-600 mt-0.5">(20 – 34 pts)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 text-xs">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black text-amber-800 leading-none">{{ kpis.tier3_count }}</h3>
+                    <p class="text-[11px] font-bold text-amber-600 mt-1">{{ kpis.tier3_pct }}% of active team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-amber-100 flex justify-between items-center text-[11px]">
+                <span class="text-amber-700 font-semibold">Next Target</span>
+                <span class="font-black text-amber-800">Tier 2 (35 pts)</span>
+            </div>
+        </div>
+
+        <!-- 4. Tier 4 -->
+        <div class="bg-white p-3.5 rounded-xl border border-purple-200 bg-purple-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black text-purple-800 uppercase tracking-tight">Tier 4</h4>
+                        <p class="text-[11px] font-bold text-purple-600 mt-0.5">(1 – 19 pts)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700 shrink-0 text-xs">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black text-purple-800 leading-none">{{ kpis.tier4_count }}</h3>
+                    <p class="text-[11px] font-bold text-purple-600 mt-1">{{ kpis.tier4_pct }}% of active team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-purple-100 flex justify-between items-center text-[11px]">
+                <span class="text-purple-700 font-semibold">Next Target</span>
+                <span class="font-black text-purple-800">Tier 3 (20 pts)</span>
+            </div>
+        </div>
+
+        <!-- 5. DRP IDs with 0 Score -->
+        <div class="bg-white p-3.5 rounded-xl border border-rose-200 bg-rose-50/30 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black uppercase tracking-tight" style="color: #f35959;">DRP IDs</h4>
+                        <p class="text-[11px] font-bold mt-0.5 text-rose-500">(0 Score)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center shrink-0 text-xs" style="color: #f35959;">
+                        <i class="fa-solid fa-gauge-simple"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black leading-none" style="color: #f35959;">{{ kpis.zero_score_count }}</h3>
+                    <p class="text-[11px] font-bold mt-1 text-rose-500">{{ kpis.zero_score_pct }}% of active team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-rose-100 flex justify-between items-center text-[11px]">
+                <span class="text-rose-600 font-semibold">Next Target</span>
+                <span class="font-black text-rose-700">Tier 4 (1-19 pts)</span>
+            </div>
+        </div>
+
+        <!-- 6. Total Eligible Headcount -->
+        <div class="bg-white p-3.5 rounded-xl border-2 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between" style="border-color: #f35959; background-color: #FFF8F8;">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black text-slate-800 uppercase tracking-tight leading-tight">Total Eligible Headcount</h4>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 text-xs" style="background-color: #f35959;">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black text-slate-900 leading-none">{{ kpis.total_headcount }}</h3>
+                    <div class="mt-2 space-y-1 text-[11px]">
+                        <div class="flex items-center space-x-1.5 font-bold text-emerald-700">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span>DRP ID Created: <strong>{{ kpis.drp_created_count }}</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-1.5 font-bold" style="color: #f35959;">
+                            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: #f35959;"></span>
+                            <span>DRP ID Not Created: <strong>{{ kpis.drp_not_created_count }}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Cluster Tier Progression & Top Products -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Cluster Breakdown Chart (2 cols) -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-base">Cluster / Portfolio Tier Progression</h3>
+                    <p class="text-xs text-slate-500">Tier maturity by major business delivery units</p>
+                </div>
+                <a href="{{ url_for('employees') }}" class="text-xs font-semibold hover:underline" style="color: #30496D;">View Employee Hub &rarr;</a>
+            </div>
+            <div class="h-64 relative">
+                <canvas id="clusterChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Products List (1 col) -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="mb-4">
+                <h3 class="font-bold text-slate-900 text-base">Top Product Focus Areas</h3>
+                <p class="text-xs text-slate-500">Google Cloud specializations mapped</p>
+            </div>
+            <div class="space-y-3">
+                {% for prod in charts.product_items %}
+                <div>
+                    <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-slate-800 truncate">{{ prod.name }}</span>
+                        <span class="text-slate-600">{{ prod.count }} Engineers</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="h-2 rounded-full" style="background-color: #30496D; width: {{ min(100, (prod.count / kpis.total_headcount * 100 * 2.5)|round) }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Manager Enablement Scorecard with Cluster Filter -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+                <h3 class="font-bold text-slate-900 text-base">Manager Enablement Scorecard</h3>
+                <p class="text-xs text-slate-500">Team tier distribution under each engineering leader</p>
+            </div>
+            
+            <!-- Dynamic Cluster Filter Dropdown -->
+            <div class="flex items-center space-x-2">
+                <label for="managerClusterFilter" class="text-xs font-semibold text-slate-600 whitespace-nowrap">Filter Cluster:</label>
+                <select id="managerClusterFilter" onchange="filterManagerTable(this.value)" class="text-xs bg-slate-50 border border-slate-300 rounded-lg py-1.5 px-3 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="All">All Clusters (Show All)</option>
+                    {% for clus in charts.all_clusters %}
+                    <option value="{{ clus }}">{{ clus }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                    <tr>
+                        <th class="py-3 px-4">Manager Name</th>
+                        <th class="py-3 px-4">Cluster</th>
+                        <th class="py-3 px-4 text-center">Team Size</th>
+                        <th class="py-3 px-4 text-center text-emerald-700">Tier 1</th>
+                        <th class="py-3 px-4 text-center font-bold" style="color: #30496D;">Tier 2</th>
+                        <th class="py-3 px-4 text-center text-amber-700">Tier 3</th>
+                        <th class="py-3 px-4 text-center text-purple-700">Tier 4</th>
+                        <th class="py-3 px-4 text-center font-bold" style="color: #f35959;">DRP IDs with 0 Score</th>
+                        <th class="py-3 px-4 text-center font-bold text-rose-600">DRP ID Not Created ⚠️</th>
+                        <th class="py-3 px-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100" id="managerTableBody">
+                    {% for mgr in charts.manager_leaderboard %}
+                    <tr class="hover:bg-slate-50/80 transition-colors manager-row" data-cluster="{{ mgr.cluster }}">
+                        <td class="py-3 px-4 font-bold text-slate-900">{{ mgr.manager }}</td>
+                        <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px]">{{ mgr.cluster }}</span></td>
+                        <td class="py-3 px-4 text-center font-semibold text-slate-800">{{ mgr.total }}</td>
+                        <td class="py-3 px-4 text-center font-bold text-emerald-600">{{ mgr.t1 }}</td>
+                        <td class="py-3 px-4 text-center font-semibold" style="color: #30496D;">{{ mgr.t2 }}</td>
+                        <td class="py-3 px-4 text-center text-amber-600">{{ mgr.t3 }}</td>
+                        <td class="py-3 px-4 text-center text-purple-600">{{ mgr.t4 }}</td>
+                        <td class="py-3 px-4 text-center font-bold" style="color: #f35959;">{{ mgr.zero_score }}</td>
+                        <td class="py-3 px-4 text-center font-bold text-rose-600">{{ mgr.t0 }}</td>
+                        <td class="py-3 px-4 text-right">
+                            <a href="{{ url_for('employees', manager=mgr.manager) }}" class="font-semibold text-xs hover:underline" style="color: #30496D;">View Team &rarr;</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Manager Table Cluster Filter
+    function filterManagerTable(selectedCluster) {
+        const rows = document.querySelectorAll('.manager-row');
+        rows.forEach(row => {
+            const cluster = row.getAttribute('data-cluster');
+            if (selectedCluster === 'All' || cluster === selectedCluster) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Cluster Tier Progression Chart
+    const clusterLabels = {{ charts.cluster_dist | map(attribute='cluster') | list | tojson }};
+    const t1Data = {{ charts.cluster_dist | map(attribute='t1') | list | tojson }};
+    const t2Data = {{ charts.cluster_dist | map(attribute='t2') | list | tojson }};
+    const t3Data = {{ charts.cluster_dist | map(attribute='t3') | list | tojson }};
+    const t4Data = {{ charts.cluster_dist | map(attribute='t4') | list | tojson }};
+    const zeroScoreData = {{ charts.cluster_dist | map(attribute='zero_score') | list | tojson }};
+    const t0Data = {{ charts.cluster_dist | map(attribute='t0') | list | tojson }};
+
+    const ctx = document.getElementById('clusterChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: clusterLabels,
+            datasets: [
+                { label: 'Tier 1', data: t1Data, backgroundColor: '#10B981', stack: 'Stack 0' },
+                { label: 'Tier 2', data: t2Data, backgroundColor: '#30496D', stack: 'Stack 0' },
+                { label: 'Tier 3', data: t3Data, backgroundColor: '#F59E0B', stack: 'Stack 0' },
+                { label: 'Tier 4', data: t4Data, backgroundColor: '#8B5CF6', stack: 'Stack 0' },
+                { label: 'DRP IDs with 0 Score', data: zeroScoreData, backgroundColor: '#f35959', stack: 'Stack 0' },
+                { label: 'DRP ID Not Created', data: t0Data, backgroundColor: '#DC2626', stack: 'Stack 0' }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { stacked: true, grid: { color: '#F1F5F9' }, beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}

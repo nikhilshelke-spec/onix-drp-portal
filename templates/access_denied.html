@@ -1,0 +1,22 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied – Onix DRP Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center font-sans">
+    <div class="max-w-md w-full mx-4 text-center">
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-10">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                <i class="fa-solid fa-lock text-red-500 text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 mb-2">Access Denied</h1>
+            <p class="text-slate-500 text-sm mb-6">{{ reason or "You are not authorized to view this page." }}</p>
+            <p class="text-xs text-slate-400">Contact <strong>nikhil.shelke@onixnet.com</strong> to request access.</p>
+        </div>
+    </div>
+</body>
+</html>

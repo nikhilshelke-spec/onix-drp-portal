@@ -1,0 +1,26 @@
+{
+  "DRP ID Not Created": {
+    "subject": "Action Required: Urgent DRP Profile Setup & Registration",
+    "body": "Our records indicate your Google Delivery Readiness Portal (DRP) account is pending registration. Creating your DRP account is mandatory to track your Google Cloud technical competency and partner tier.\n\nWe are launching a company-wide drive to help every technical engineer get registered and advance towards Tier 1 (49+ points) in our Google DRP framework. Upgrading your tier showcases your technical mastery and directly impacts our Google Premier Partner metrics.\n\nPlease complete your DRP profile registration immediately to ensure your competency contributions and project credentials are fully recognized."
+  },
+  "DRP IDs with 0 Score": {
+    "subject": "Action Required: Push Your DRP Score to Reach Tier 1!",
+    "body": "We noticed your DRP score is currently at 0.0 points in your mapped focus area: {product}. We are launching a focused drive to help you activate your points and advance towards Tier 1 (49+ points).\n\nYour Current Standing:\n- Standing: Score 0.0 pts | Product Focus: {product}\n- Target: Tier 4 (1-19 pts) (Activate your score with 1 badge or cert)\n\nComplete a quick Skill Badge (5 pts) or Google Cloud Certification (10 pts) on Credly and link it to DRP to activate your score this week!"
+  },
+  "Tier 4": {
+    "subject": "Action Required: Push Your DRP Score to Reach Tier 1!",
+    "body": "We are launching a focused drive to help everyone reach Tier 1 (49+ points) in our Google DRP framework. Upgrading your tier showcases your technical mastery and directly impacts our team's core competency metrics.\n\nYour Current Status:\n- Current Tier: Tier 4 | Current Score: {score} pts | Focus: {product}\n- Next Milestone Target: {target_tier} (You need only {gap} more points to upgrade!)\n\nEvery badge, skill lab, and project deployment counts. Review the DRP Attribution sheet and pick your next milestone."
+  },
+  "Tier 3": {
+    "subject": "Action Required: Push Your DRP Score to Reach Tier 1!",
+    "body": "Great momentum! You are currently in Tier 3 with {score} points in your mapped product: {product}. \n\nYour Current Status:\n- Current Tier: Tier 3 | Current Score: {score} pts | Focus: {product}\n- Next Milestone Target: {target_tier} (You need only {gap} more points to upgrade!)\n\nYou are within striking distance of Tier 2. Complete your product-specific certifications and project contributions to upgrade this quarter."
+  },
+  "Tier 2": {
+    "subject": "Action Required: Push Your DRP Score to Reach Tier 1!",
+    "body": "Outstanding progress! You are currently in Tier 2 with {score} points in your mapped product: {product}. \n\nYour Current Status:\n- Current Tier: Tier 2 | Current Score: {score} pts | Focus: {product}\n- Next Milestone Target: Tier 1 (49+ pts) (You need only {gap} more points to reach Tier 1 Mastery!)\n\nYou are in the final sprint to Tier 1 Mastery. Drive your projects and advanced Google certifications to cross the finish line."
+  },
+  "Tier 1": {
+    "subject": "Congratulations: Tier 1 Mastery Recognition & Mentor Leadership",
+    "body": "Congratulations on achieving Tier 1 Mastery ({score} points) with your focus area in {product}! You represent the highest level of Google Cloud technical competency across Onix.\n\nYour technical expertise sets a stellar benchmark for our team. As a Tier 1 leader, we invite you to guide and mentor team members in Tiers 2, 3, and 4 to help accelerate their journey towards Tier 1."
+  }
+}

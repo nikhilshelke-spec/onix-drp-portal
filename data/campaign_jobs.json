@@ -1,0 +1,32 @@
+{
+  "fcf780b0": {
+    "id": "fcf780b0",
+    "tier": "DRP ID Not Created",
+    "total": 4,
+    "processed": 4,
+    "success_count": 4,
+    "failed_count": 0,
+    "status": "completed",
+    "start_time": "2026-08-26 16:06:17",
+    "sent_list": [
+      {
+        "name": "Nikhil Shelke",
+        "email": "nikhil.shelke@onixnet.com"
+      },
+      {
+        "name": "Deepraj Bhosale",
+        "email": "deepraj.bhosale@onixnet.com"
+      },
+      {
+        "name": "Prasad Kulkarni",
+        "email": "prasad.kulkarni1@onixnet.com"
+      },
+      {
+        "name": "Tanaya Sankpal",
+        "email": "tanaya.sankpal@onixnet.com"
+      }
+    ],
+    "failed_list": [],
+    "error_message": ""
+  }
+}
