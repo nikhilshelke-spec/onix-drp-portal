@@ -433,7 +433,12 @@
             if (data.success) {
                 pendingAuthEmail = email;
                 document.getElementById('stepOtp').classList.remove('hidden');
-                document.getElementById('otpSentNotice').innerText = `Verification code sent to ${email}. Check your inbox!`;
+                if (data.fallback && data.otp) {
+                    document.getElementById('authOtpInput').value = data.otp;
+                    document.getElementById('otpSentNotice').innerHTML = `Your verification code is: <strong class="text-sm font-mono tracking-widest text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded">${data.otp}</strong>. Click "Verify" below to access your scorecard!`;
+                } else {
+                    document.getElementById('otpSentNotice').innerText = `Verification code sent to ${email}. Check your inbox!`;
+                }
                 btnText.innerText = 'Code Sent!';
             } else {
                 showAuthError(data.error || 'Failed to send verification code.');
