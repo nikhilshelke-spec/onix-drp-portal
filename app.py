@@ -143,6 +143,9 @@ def employees():
         base_df=scope['allowed_df']
     )
 
+    initial_captcha = str(secrets.randbelow(9000) + 1000)
+    session['captcha_code'] = initial_captcha
+
     return render_template(
         'employees.html',
         employees=employee_list,
@@ -154,8 +157,33 @@ def employees():
         search_query=search_query,
         is_authenticated=is_authenticated,
         scope=scope,
+        initial_captcha=initial_captcha,
         page='employees'
     )
+
+@app.route('/api/auth/get_captcha')
+def api_get_captcha():
+    code = str(secrets.randbelow(9000) + 1000)
+    session['captcha_code'] = code
+    return jsonify({'code': code})
+
+@app.route('/api/auth/verify_captcha', methods=['POST'])
+def api_verify_captcha():
+    data = request.get_json() or {}
+    email = data.get('email', '').strip().lower()
+    captcha = data.get('captcha', '').strip()
+
+    if not email or '@' not in email:
+        return jsonify({'success': False, 'error': 'Please enter a valid official Onix email address.'}), 400
+
+    stored = session.get('captcha_code', '')
+    if not stored or captcha != stored:
+        return jsonify({'success': False, 'error': 'Incorrect 4-digit code. Please enter the current code.'}), 400
+
+    # Successful verification
+    session['verified_email'] = email
+    session['role'] = 'user'
+    return jsonify({'success': True, 'redirect': url_for('employees')})
 
 @app.route('/api/auth/send_otp', methods=['POST'])
 def api_send_otp():

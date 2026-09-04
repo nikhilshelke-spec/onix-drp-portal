@@ -16,54 +16,46 @@
             </p>
         </div>
 
-        <div class="p-8 space-y-6">
-            <!-- Step 1: Enter Email -->
-            <div id="stepEmail" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Official Onix Email Address</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-envelope absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
-                        <input type="email" id="authEmailInput" placeholder="your.name@onixnet.com" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
-                    </div>
+        <div class="p-8 space-y-5">
+            <!-- Email Input -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Official Onix Email Address</label>
+                <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <input type="email" id="authEmailInput" placeholder="your.name@onixnet.com" autocomplete="email"
+                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
                 </div>
-
-                <button onclick="sendAuthOTP()" id="btnSendOtp" class="w-full py-3.5 text-white font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2" style="background-color: #30496D;">
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                    <span id="btnSendOtpText">Send Verification Code</span>
-                </button>
             </div>
 
-            <!-- Step 2: Enter OTP Code (Initially Hidden) -->
-            <div id="stepOtp" class="hidden space-y-4 pt-2 border-t border-slate-100">
-                <div class="p-3.5 bg-blue-50 rounded-xl border border-blue-200 text-blue-900 text-xs flex items-start space-x-2.5">
-                    <i class="fa-solid fa-envelope-circle-check text-blue-600 text-base shrink-0 mt-0.5"></i>
-                    <div>
-                        <span id="otpSentNotice" class="font-bold block">Verification code dispatched to your email!</span>
-                        <span class="text-[11px] text-blue-700 mt-0.5 block">Please check your inbox, copy the 6-digit code, and paste it below.</span>
-                    </div>
+            <!-- Simple Security Captcha -->
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                <div class="flex justify-between items-center">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        <i class="fa-solid fa-shield-halved text-[#30496D] mr-1"></i> Security Verification
+                    </label>
+                    <span class="text-[11px] text-slate-500">Type the 4 digits shown</span>
                 </div>
 
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Enter 6-Digit Verification Code</label>
-                        <span id="otpTimerDisplay" class="text-[11px] font-mono text-slate-500 font-semibold">Valid for: <span id="countdownSec" class="text-blue-700 font-bold">30s</span></span>
+                <div class="flex items-center space-x-3">
+                    <div id="captchaBadge" class="select-none flex-1 py-3 px-4 rounded-xl font-mono text-2xl font-black tracking-[10px] text-[#30496D] bg-gradient-to-r from-blue-50 via-slate-100 to-indigo-50 border-2 border-dashed border-blue-200 shadow-inner text-center">
+                        {{ initial_captcha }}
                     </div>
-                    <input type="text" id="authOtpInput" maxlength="6" placeholder="• • • • • •" autocomplete="one-time-code"
-                        class="w-full py-3.5 text-center tracking-[8px] bg-slate-50 border border-slate-300 rounded-xl text-2xl font-mono font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
-                </div>
-
-                <button onclick="verifyAuthOTP()" id="btnVerifyOtp" class="w-full py-3.5 text-white font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer" style="background-color: #30496D;">
-                    <i class="fa-solid fa-unlock-keyhole text-xs"></i>
-                    <span id="btnVerifyOtpText">Verify & Access Details</span>
-                </button>
-
-                <div class="text-center pt-1 flex justify-between items-center text-xs px-1">
-                    <span class="text-slate-400">Code expires in 15 mins</span>
-                    <button id="btnResendOtp" onclick="resendAuthOTP()" disabled class="text-xs text-slate-400 cursor-not-allowed font-semibold">
-                        Resend code in <span id="resendCountdown">30</span>s
+                    <button type="button" onclick="refreshCaptcha()" class="p-3 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-all shadow-sm flex items-center justify-center" title="Get New Code">
+                        <i id="refreshIcon" class="fa-solid fa-rotate-right text-sm"></i>
                     </button>
                 </div>
+
+                <div>
+                    <input type="text" id="captchaInput" maxlength="4" placeholder="• • • •" autocomplete="off"
+                        class="w-full py-3 text-center tracking-[8px] bg-white border border-slate-300 rounded-xl text-xl font-mono font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
             </div>
+
+            <!-- Action Button -->
+            <button onclick="submitCaptchaVerification()" id="btnSubmitCaptcha" class="w-full py-3.5 text-white font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer hover:opacity-95" style="background-color: #30496D;">
+                <i class="fa-solid fa-unlock-keyhole text-xs"></i>
+                <span id="btnSubmitText">Verify & View My Details</span>
+            </button>
 
             <!-- Error Notice Box -->
             <div id="authErrorBox" class="hidden p-3 bg-rose-50 rounded-xl border border-rose-200 text-rose-700 text-xs flex items-center space-x-2">
@@ -413,135 +405,79 @@
 </div>
 
 <script>
-    // ── OTP AUTHENTICATION CLIENT ─────────────────────────────────────────────
-    let pendingAuthEmail = '';
-    let otpCountdownInterval = null;
+    // ── SIMPLE CAPTCHA AUTHENTICATION CLIENT ─────────────────────────────────
+    let currentCaptcha = "{{ initial_captcha }}";
 
-    function startOtpTimer(seconds = 30) {
-        if (otpCountdownInterval) clearInterval(otpCountdownInterval);
-        let timeLeft = seconds;
-        const resendBtn = document.getElementById('btnResendOtp');
-        const countdownSec = document.getElementById('countdownSec');
-
-        if (resendBtn) {
-            resendBtn.disabled = true;
-            resendBtn.className = 'text-xs text-slate-400 cursor-not-allowed font-semibold';
-            resendBtn.innerHTML = `Resend code in <span id="resendCountdown">${timeLeft}</span>s`;
-        }
-        if (countdownSec) {
-            countdownSec.innerText = `${timeLeft}s`;
-            countdownSec.className = 'text-blue-700 font-bold';
-        }
-
-        otpCountdownInterval = setInterval(() => {
-            timeLeft--;
-            const countSpan = document.getElementById('resendCountdown');
-            if (countSpan) countSpan.innerText = timeLeft;
-            if (countdownSec) countdownSec.innerText = `${timeLeft}s`;
-
-            if (timeLeft <= 0) {
-                clearInterval(otpCountdownInterval);
-                otpCountdownInterval = null;
-                if (resendBtn) {
-                    resendBtn.disabled = false;
-                    resendBtn.className = 'text-xs text-blue-600 hover:text-blue-800 cursor-pointer font-bold underline transition-colors';
-                    resendBtn.innerHTML = '<i class="fa-solid fa-rotate-right mr-1"></i> Resend Verification Code';
-                }
-                if (countdownSec) {
-                    countdownSec.innerText = 'Expired';
-                    countdownSec.className = 'text-amber-600 font-bold';
+    async function refreshCaptcha() {
+        const icon = document.getElementById('refreshIcon');
+        if (icon) icon.classList.add('fa-spin');
+        try {
+            const res = await fetch('/api/auth/get_captcha');
+            const data = await res.json();
+            if (data.code) {
+                currentCaptcha = data.code;
+                const badge = document.getElementById('captchaBadge');
+                if (badge) badge.innerText = data.code;
+                const input = document.getElementById('captchaInput');
+                if (input) {
+                    input.value = '';
+                    input.focus();
                 }
             }
-        }, 1000);
+        } catch (e) {
+            console.error('Failed to refresh captcha:', e);
+        } finally {
+            setTimeout(() => {
+                if (icon) icon.classList.remove('fa-spin');
+            }, 300);
+        }
     }
 
-    async function sendAuthOTP() {
+    async function submitCaptchaVerification() {
         const emailInput = document.getElementById('authEmailInput');
+        const captchaInput = document.getElementById('captchaInput');
         const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+        const captcha = captchaInput ? captchaInput.value.trim() : '';
         const errBox = document.getElementById('authErrorBox');
         if (errBox) errBox.classList.add('hidden');
 
         if (!email || !email.includes('@')) {
             showAuthError('Please enter a valid official Onix email address.');
+            if (emailInput) emailInput.focus();
             return;
         }
 
-        const btn = document.getElementById('btnSendOtp');
-        const btnText = document.getElementById('btnSendOtpText');
-        btn.disabled = true;
-        btnText.innerText = 'Sending Code...';
-
-        try {
-            const res = await fetch('/api/auth/send_otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-            const data = await res.json();
-            if (data.success) {
-                pendingAuthEmail = email;
-                document.getElementById('stepOtp').classList.remove('hidden');
-                const otpInput = document.getElementById('authOtpInput');
-                if (otpInput) {
-                    otpInput.value = '';
-                    otpInput.focus();
-                }
-                document.getElementById('otpSentNotice').innerText = `Verification code sent to ${email}! Check your inbox, copy the 6-digit code and paste it below.`;
-                btnText.innerText = 'Code Sent!';
-                startOtpTimer(30);
-            } else {
-                showAuthError(data.error || 'Failed to send verification code.');
-                btnText.innerText = 'Send Verification Code';
-                btn.disabled = false;
-            }
-        } catch (e) {
-            showAuthError('Network error. Please check your connection and try again.');
-            btnText.innerText = 'Send Verification Code';
-            btn.disabled = false;
-        }
-    }
-
-    async function verifyAuthOTP() {
-        const otpInput = document.getElementById('authOtpInput');
-        const otp = otpInput ? otpInput.value.trim() : '';
-        const errBox = document.getElementById('authErrorBox');
-        if (errBox) errBox.classList.add('hidden');
-
-        if (!otp || otp.length < 6) {
-            showAuthError('Please enter the complete 6-digit verification code.');
+        if (!captcha || captcha.length < 4) {
+            showAuthError('Please enter the 4-digit verification code.');
+            if (captchaInput) captchaInput.focus();
             return;
         }
 
-        const btn = document.getElementById('btnVerifyOtp');
-        const btnText = document.getElementById('btnVerifyOtpText');
-        btn.disabled = true;
-        btnText.innerText = 'Verifying...';
+        const btn = document.getElementById('btnSubmitCaptcha');
+        const btnText = document.getElementById('btnSubmitText');
+        if (btn) btn.disabled = true;
+        if (btnText) btnText.innerText = 'Verifying...';
 
         try {
-            const res = await fetch('/api/auth/verify_otp', {
+            const res = await fetch('/api/auth/verify_captcha', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: pendingAuthEmail, otp })
+                body: JSON.stringify({ email, captcha })
             });
             const data = await res.json();
             if (data.success) {
                 window.location.reload();
             } else {
-                showAuthError(data.error || 'Invalid or expired verification code. Please check and try again.');
-                btnText.innerText = 'Verify & Access Details';
-                btn.disabled = false;
+                showAuthError(data.error || 'Incorrect code. Please enter the new code shown.');
+                if (btn) btn.disabled = false;
+                if (btnText) btnText.innerText = 'Verify & View My Details';
+                refreshCaptcha();
             }
         } catch (e) {
-            showAuthError('Verification failed. Please try again.');
-            btnText.innerText = 'Verify & Access Details';
-            btn.disabled = false;
+            showAuthError('Network error. Please try again.');
+            if (btn) btn.disabled = false;
+            if (btnText) btnText.innerText = 'Verify & View My Details';
         }
-    }
-
-    function resendAuthOTP() {
-        const resendBtn = document.getElementById('btnResendOtp');
-        if (resendBtn && resendBtn.disabled) return;
-        sendAuthOTP();
     }
 
     function showAuthError(msg) {
@@ -551,23 +487,27 @@
         if (errBox) errBox.classList.remove('hidden');
     }
 
-    // Auto-verify on paste or complete 6-digit input
+    // Auto submit on Enter key or 4th digit entered
     document.addEventListener('DOMContentLoaded', () => {
-        const otpInput = document.getElementById('authOtpInput');
-        if (otpInput) {
-            otpInput.addEventListener('input', function() {
-                this.value = this.value.replace(/\D/g, '').slice(0, 6);
-                if (this.value.length === 6) {
-                    setTimeout(() => verifyAuthOTP(), 150);
+        const captchaInput = document.getElementById('captchaInput');
+        const emailInput = document.getElementById('authEmailInput');
+
+        if (captchaInput) {
+            captchaInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitCaptchaVerification();
+            });
+            captchaInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '').slice(0, 4);
+                if (this.value.length === 4 && emailInput && emailInput.value.includes('@')) {
+                    setTimeout(() => submitCaptchaVerification(), 150);
                 }
             });
-            otpInput.addEventListener('paste', function(e) {
-                setTimeout(() => {
-                    this.value = this.value.replace(/\D/g, '').slice(0, 6);
-                    if (this.value.length === 6) {
-                        verifyAuthOTP();
-                    }
-                }, 50);
+        }
+        if (emailInput) {
+            emailInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    if (captchaInput) captchaInput.focus();
+                }
             });
         }
     });
