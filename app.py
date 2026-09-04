@@ -186,16 +186,13 @@ def api_send_otp():
 
     ok, msg = email_service.send_otp_email(email, otp, magic_link)
     if ok:
-        return jsonify({'success': True, 'message': f'Verification code sent to {email}. Check your inbox!'})
+        return jsonify({'success': True, 'message': f'Verification code dispatched to {email}. Please check your email inbox.'})
     else:
-        # Seamless cloud fallback: employee receives direct login code & magic link
+        # Never leak OTP on screen. Return explicit error if delivery fails.
         return jsonify({
-            'success': True,
-            'fallback': True,
-            'otp': otp,
-            'magic_link': magic_link,
-            'message': f'Your instant verification code is: {otp}'
-        })
+            'success': False,
+            'error': f'Email dispatch failed: {msg}. Please ensure email service or Google Webhook is active.'
+        }), 500
 
 @app.route('/api/auth/verify_otp', methods=['POST'])
 def api_verify_otp():

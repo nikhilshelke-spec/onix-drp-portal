@@ -35,24 +35,32 @@
 
             <!-- Step 2: Enter OTP Code (Initially Hidden) -->
             <div id="stepOtp" class="hidden space-y-4 pt-2 border-t border-slate-100">
-                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-xs flex items-center space-x-2">
-                    <i class="fa-solid fa-circle-check text-emerald-600 text-sm shrink-0"></i>
-                    <span id="otpSentNotice">Verification code sent! Check your inbox or spam.</span>
+                <div class="p-3.5 bg-blue-50 rounded-xl border border-blue-200 text-blue-900 text-xs flex items-start space-x-2.5">
+                    <i class="fa-solid fa-envelope-circle-check text-blue-600 text-base shrink-0 mt-0.5"></i>
+                    <div>
+                        <span id="otpSentNotice" class="font-bold block">Verification code dispatched to your email!</span>
+                        <span class="text-[11px] text-blue-700 mt-0.5 block">Please check your inbox, copy the 6-digit code, and paste it below.</span>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Enter 6-Digit Verification Code</label>
-                    <input type="text" id="authOtpInput" maxlength="6" placeholder="• • • • • •" class="w-full py-3.5 text-center tracking-[8px] bg-slate-50 border border-slate-300 rounded-xl text-xl font-mono font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Enter 6-Digit Verification Code</label>
+                        <span id="otpTimerDisplay" class="text-[11px] font-mono text-slate-500 font-semibold">Valid for: <span id="countdownSec" class="text-blue-700 font-bold">30s</span></span>
+                    </div>
+                    <input type="text" id="authOtpInput" maxlength="6" placeholder="• • • • • •" autocomplete="one-time-code"
+                        class="w-full py-3.5 text-center tracking-[8px] bg-slate-50 border border-slate-300 rounded-xl text-2xl font-mono font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
                 </div>
 
-                <button onclick="verifyAuthOTP()" id="btnVerifyOtp" class="w-full py-3.5 text-white font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2" style="background-color: #f35959;">
+                <button onclick="verifyAuthOTP()" id="btnVerifyOtp" class="w-full py-3.5 text-white font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer" style="background-color: #30496D;">
                     <i class="fa-solid fa-unlock-keyhole text-xs"></i>
                     <span id="btnVerifyOtpText">Verify & Access Details</span>
                 </button>
 
-                <div class="text-center pt-1">
-                    <button onclick="resendAuthOTP()" class="text-xs text-slate-500 hover:text-slate-800 font-semibold hover:underline">
-                        Didn't receive code? Resend
+                <div class="text-center pt-1 flex justify-between items-center text-xs px-1">
+                    <span class="text-slate-400">Code expires in 15 mins</span>
+                    <button id="btnResendOtp" onclick="resendAuthOTP()" disabled class="text-xs text-slate-400 cursor-not-allowed font-semibold">
+                        Resend code in <span id="resendCountdown">30</span>s
                     </button>
                 </div>
             </div>
@@ -407,14 +415,54 @@
 <script>
     // ── OTP AUTHENTICATION CLIENT ─────────────────────────────────────────────
     let pendingAuthEmail = '';
+    let otpCountdownInterval = null;
+
+    function startOtpTimer(seconds = 30) {
+        if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+        let timeLeft = seconds;
+        const resendBtn = document.getElementById('btnResendOtp');
+        const countdownSec = document.getElementById('countdownSec');
+
+        if (resendBtn) {
+            resendBtn.disabled = true;
+            resendBtn.className = 'text-xs text-slate-400 cursor-not-allowed font-semibold';
+            resendBtn.innerHTML = `Resend code in <span id="resendCountdown">${timeLeft}</span>s`;
+        }
+        if (countdownSec) {
+            countdownSec.innerText = `${timeLeft}s`;
+            countdownSec.className = 'text-blue-700 font-bold';
+        }
+
+        otpCountdownInterval = setInterval(() => {
+            timeLeft--;
+            const countSpan = document.getElementById('resendCountdown');
+            if (countSpan) countSpan.innerText = timeLeft;
+            if (countdownSec) countdownSec.innerText = `${timeLeft}s`;
+
+            if (timeLeft <= 0) {
+                clearInterval(otpCountdownInterval);
+                otpCountdownInterval = null;
+                if (resendBtn) {
+                    resendBtn.disabled = false;
+                    resendBtn.className = 'text-xs text-blue-600 hover:text-blue-800 cursor-pointer font-bold underline transition-colors';
+                    resendBtn.innerHTML = '<i class="fa-solid fa-rotate-right mr-1"></i> Resend Verification Code';
+                }
+                if (countdownSec) {
+                    countdownSec.innerText = 'Expired';
+                    countdownSec.className = 'text-amber-600 font-bold';
+                }
+            }
+        }, 1000);
+    }
 
     async function sendAuthOTP() {
-        const email = document.getElementById('authEmailInput').value.trim();
+        const emailInput = document.getElementById('authEmailInput');
+        const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
         const errBox = document.getElementById('authErrorBox');
-        errBox.classList.add('hidden');
+        if (errBox) errBox.classList.add('hidden');
 
         if (!email || !email.includes('@')) {
-            showAuthError('Please enter a valid email address.');
+            showAuthError('Please enter a valid official Onix email address.');
             return;
         }
 
@@ -433,32 +481,34 @@
             if (data.success) {
                 pendingAuthEmail = email;
                 document.getElementById('stepOtp').classList.remove('hidden');
-                if (data.fallback && data.otp) {
-                    document.getElementById('authOtpInput').value = data.otp;
-                    document.getElementById('otpSentNotice').innerHTML = `Your verification code is: <strong class="text-sm font-mono tracking-widest text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded">${data.otp}</strong>. Click "Verify" below to access your scorecard!`;
-                } else {
-                    document.getElementById('otpSentNotice').innerText = `Verification code sent to ${email}. Check your inbox!`;
+                const otpInput = document.getElementById('authOtpInput');
+                if (otpInput) {
+                    otpInput.value = '';
+                    otpInput.focus();
                 }
+                document.getElementById('otpSentNotice').innerText = `Verification code sent to ${email}! Check your inbox, copy the 6-digit code and paste it below.`;
                 btnText.innerText = 'Code Sent!';
+                startOtpTimer(30);
             } else {
                 showAuthError(data.error || 'Failed to send verification code.');
                 btnText.innerText = 'Send Verification Code';
                 btn.disabled = false;
             }
         } catch (e) {
-            showAuthError('Network error. Please try again.');
+            showAuthError('Network error. Please check your connection and try again.');
             btnText.innerText = 'Send Verification Code';
             btn.disabled = false;
         }
     }
 
     async function verifyAuthOTP() {
-        const otp = document.getElementById('authOtpInput').value.trim();
+        const otpInput = document.getElementById('authOtpInput');
+        const otp = otpInput ? otpInput.value.trim() : '';
         const errBox = document.getElementById('authErrorBox');
-        errBox.classList.add('hidden');
+        if (errBox) errBox.classList.add('hidden');
 
         if (!otp || otp.length < 6) {
-            showAuthError('Please enter the 6-digit verification code.');
+            showAuthError('Please enter the complete 6-digit verification code.');
             return;
         }
 
@@ -477,26 +527,50 @@
             if (data.success) {
                 window.location.reload();
             } else {
-                showAuthError(data.error || 'Invalid verification code.');
-                btnText.innerText = 'Verify & Open Employee Hub';
+                showAuthError(data.error || 'Invalid or expired verification code. Please check and try again.');
+                btnText.innerText = 'Verify & Access Details';
                 btn.disabled = false;
             }
         } catch (e) {
             showAuthError('Verification failed. Please try again.');
-            btnText.innerText = 'Verify & Open Employee Hub';
+            btnText.innerText = 'Verify & Access Details';
             btn.disabled = false;
         }
     }
 
     function resendAuthOTP() {
+        const resendBtn = document.getElementById('btnResendOtp');
+        if (resendBtn && resendBtn.disabled) return;
         sendAuthOTP();
     }
 
     function showAuthError(msg) {
         const errBox = document.getElementById('authErrorBox');
-        document.getElementById('authErrorMsg').innerText = msg;
-        errBox.classList.remove('hidden');
+        const errMsg = document.getElementById('authErrorMsg');
+        if (errMsg) errMsg.innerText = msg;
+        if (errBox) errBox.classList.remove('hidden');
     }
+
+    // Auto-verify on paste or complete 6-digit input
+    document.addEventListener('DOMContentLoaded', () => {
+        const otpInput = document.getElementById('authOtpInput');
+        if (otpInput) {
+            otpInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '').slice(0, 6);
+                if (this.value.length === 6) {
+                    setTimeout(() => verifyAuthOTP(), 150);
+                }
+            });
+            otpInput.addEventListener('paste', function(e) {
+                setTimeout(() => {
+                    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+                    if (this.value.length === 6) {
+                        verifyAuthOTP();
+                    }
+                }, 50);
+            });
+        }
+    });
 
     // ── EMPLOYEE ACTION MODAL ────────────────────────────────────────────────
     async function openEmployeeModal(empId) {
