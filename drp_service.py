@@ -1,9 +1,14 @@
 import os
 import io
+import re
+import json
 import urllib.request
 import pandas as pd
 import numpy as np
 from config import DEFAULT_EXCEL_PATH, LOCAL_EXCEL_PATH, GOOGLE_SHEET_URL, TIER_DEFINITIONS
+
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+SHEET_CONFIG_FILE = os.path.join(DATA_DIR, "spreadsheet_config.json")
 
 class DRPService:
     def __init__(self):
@@ -14,24 +19,83 @@ class DRPService:
         if not success:
             self.load_data()
 
-    def sync_from_google_sheet(self):
-        # Extract Sheet ID from URL
-        sheet_url = GOOGLE_SHEET_URL
-        csv_export_url = "https://docs.google.com/spreadsheets/d/1BfjxlXT2oBXGD8wHLn8fM8fJlAdGJOQl_d9YEPxLsx0/export?format=csv&gid=0"
+    def get_configured_sheet_url(self):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        if os.path.exists(SHEET_CONFIG_FILE):
+            try:
+                with open(SHEET_CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    cfg = json.load(f)
+                    url = cfg.get('google_sheet_url', '').strip()
+                    if url:
+                        return url
+            except Exception:
+                pass
+        return GOOGLE_SHEET_URL
+
+    def save_configured_sheet_url(self, url):
+        os.makedirs(DATA_DIR, exist_ok=True)
         try:
-            req = urllib.request.Request(csv_export_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
-            with urllib.request.urlopen(req, timeout=8) as resp:
+            with open(SHEET_CONFIG_FILE, 'w', encoding='utf-8') as f:
+                json.dump({'google_sheet_url': url.strip()}, f, indent=2)
+            return True
+        except Exception:
+            return False
+
+    def _get_csv_download_url(self, sheet_url):
+        sheet_url = (sheet_url or '').strip()
+        if not sheet_url:
+            return None
+
+        # Already a direct CSV export or published CSV
+        if 'output=csv' in sheet_url or 'format=csv' in sheet_url:
+            return sheet_url
+
+        # Published web page -> convert to csv
+        if '/pubhtml' in sheet_url:
+            return sheet_url.replace('/pubhtml', '/pub?output=csv')
+
+        # Standard Google Sheet URL (https://docs.google.com/spreadsheets/d/<ID>/edit...)
+        match_id = re.search(r'/spreadsheets/d/([a-zA-Z0-9-_]+)', sheet_url)
+        if match_id:
+            sheet_id = match_id.group(1)
+            match_gid = re.search(r'[#&?]gid=(\d+)', sheet_url)
+            gid = match_gid.group(1) if match_gid else '0'
+            return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+
+        return sheet_url
+
+    def sync_from_google_sheet(self, custom_url=None):
+        target_url = (custom_url or self.get_configured_sheet_url()).strip()
+        csv_export_url = self._get_csv_download_url(target_url)
+
+        if not csv_export_url:
+            return False, "Invalid Google Sheet URL provided."
+
+        try:
+            req = urllib.request.Request(
+                csv_export_url,
+                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+            )
+            with urllib.request.urlopen(req, timeout=12) as resp:
                 csv_bytes = resp.read()
                 df = pd.read_csv(io.BytesIO(csv_bytes))
+                if len(df) == 0:
+                    return False, "Google Sheet appears to be empty."
                 self.df = self._clean_and_normalize(df)
                 os.makedirs(os.path.dirname(LOCAL_EXCEL_PATH), exist_ok=True)
                 self.df.to_excel(LOCAL_EXCEL_PATH, index=False)
                 self.last_sync_source = "Live Google Sheet"
-                return True, f"Successfully synced live {len(self.df)} employees from Google Sheet!"
+                if custom_url:
+                    self.save_configured_sheet_url(custom_url)
+                return True, f"Successfully synced live {len(self.df)} records from Google Sheet!"
         except Exception as e:
             err_msg = str(e)
-            if '401' in err_msg or 'Unauthorized' in err_msg:
-                err_msg = "Google Sheet permission is Restricted. Click the 'Share' button in Google Sheet (top right) and set General access to 'Anyone with the link can view' for automatic live cloud sync."
+            if '401' in err_msg or 'Unauthorized' in err_msg or '403' in err_msg:
+                err_msg = (
+                    "Google Sheet permission is Restricted. "
+                    "Option A: Click 'Share' in Google Sheet (top right) and set General access to 'Anyone with the link can view'. "
+                    "Option B (Works inside Onix): In Google Sheet click File > Share > 'Publish to web' > select CSV format, and paste that link here!"
+                )
             return False, f"{err_msg}"
 
     def load_data(self, file_path=None):
@@ -115,22 +179,40 @@ class DRPService:
             status_raw = str(row.get('drp_status', '')).strip().lower()
             score = float(row.get('score', 0))
 
-            if 'exempted' in tier_raw.lower() or 'exempted' in status_raw:
+            t_clean = tier_raw.lower().replace('-', ' ').strip()
+
+            # 1. Exempted or Admin
+            if 'exempted' in t_clean or 'exempted' in status_raw:
                 return 'Exempted'
-            if 'admin' in tier_raw.lower():
+            if 'admin' in t_clean or 'admin' in status_raw:
                 return 'Admin'
-            if 'not created' in status_raw or tier_raw in ['nan', '', 'None', 'Tier 0', '0']:
+            if 'not created' in t_clean or 'not created' in status_raw:
                 return 'DRP ID Not Created'
-            
-            if 'tier 1' in tier_raw.lower() or score >= 49:
+
+            # 2. Strict match with Spreadsheet/Excel 'Tier' column
+            # If the sheet explicitly has Tier 1, Tier 2, Tier 3, Tier 4, respect it exactly!
+            if 'tier 1' in t_clean or t_clean == 'tier1' or t_clean == 't1':
                 return 'Tier 1'
-            elif 'tier 2' in tier_raw.lower() or (35 <= score < 49):
+            if 'tier 2' in t_clean or t_clean == 'tier2' or t_clean == 't2':
                 return 'Tier 2'
-            elif 'tier 3' in tier_raw.lower() or (20 <= score < 35):
+            if 'tier 3' in t_clean or t_clean == 'tier3' or t_clean == 't3':
                 return 'Tier 3'
-            elif 'tier 4' in tier_raw.lower() or (0 <= score < 20):
+            if 'tier 4' in t_clean or t_clean == 'tier4' or t_clean == 't4':
                 return 'Tier 4'
-            
+
+            # 3. Only if Tier is blank, NaN, or unspecified in the sheet, calculate from score:
+            if t_clean in ['nan', '', 'none', 'null', '0', 'tier 0', 'not specified']:
+                if status_raw in ['nan', '', 'none'] or 'not created' in status_raw:
+                    return 'DRP ID Not Created'
+                if score >= 49:
+                    return 'Tier 1'
+                elif score >= 35:
+                    return 'Tier 2'
+                elif score >= 20:
+                    return 'Tier 3'
+                else:
+                    return 'Tier 4'
+
             return 'Tier 4'
 
         df['normalized_tier'] = df.apply(normalize_tier_row, axis=1)
@@ -142,13 +224,13 @@ class DRPService:
                 return 0.0, 'Goal Achieved', 'Mastery (49+ pts)'
             elif ntier == 'Tier 2':
                 gap = max(0.0, 49.0 - score)
-                return gap, 'Tier 1 (49 pts)', f'Need {gap:.1f} more pts'
+                return gap, 'Tier 1 (49 pts)', f'Need {gap:.1f} more pts' if gap > 0 else 'Eligible for Tier 1'
             elif ntier == 'Tier 3':
                 gap = max(0.0, 35.0 - score)
-                return gap, 'Tier 2 (35 pts)', f'Need {gap:.1f} more pts'
+                return gap, 'Tier 2 (35 pts)', f'Need {gap:.1f} more pts' if gap > 0 else 'Eligible for Tier 2'
             elif ntier == 'Tier 4':
                 gap = max(0.0, 20.0 - score)
-                return gap, 'Tier 3 (20 pts)', f'Need {gap:.1f} more pts'
+                return gap, 'Tier 3 (20 pts)', f'Need {gap:.1f} more pts' if gap > 0 else 'Eligible for Tier 3'
             elif ntier == 'DRP ID Not Created':
                 return 20.0, 'Create DRP Account & Tier 3', 'Register DRP ID'
             else:

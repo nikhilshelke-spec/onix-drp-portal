@@ -355,7 +355,8 @@ def sync_page():
     if session.get('role') not in ['owner', 'editor']:
         return redirect(url_for('employees'))
     kpis = drp_service.get_kpis()
-    return render_template('settings_sync.html', kpis=kpis, page='sync')
+    google_sheet_url = drp_service.get_configured_sheet_url()
+    return render_template('settings_sync.html', kpis=kpis, google_sheet_url=google_sheet_url, page='sync')
 
 @app.route('/api/employee/<emp_id>')
 def api_employee_detail(emp_id):
@@ -364,6 +365,21 @@ def api_employee_detail(emp_id):
         return jsonify({'error': 'Employee not found'}), 404
     email_preview = email_service.generate_email_content(emp)
     return jsonify({'employee': emp, 'email': email_preview})
+
+@app.route('/api/connect_google_sheet', methods=['POST'])
+def api_connect_google_sheet():
+    if session.get('role') not in ['owner', 'editor']:
+        return redirect(url_for('employees'))
+    sheet_url = request.form.get('sheet_url', '').strip()
+    if not sheet_url:
+        return redirect(url_for('sync_page', sync_msg="Please enter a valid Google Sheet link.", sync_ok=0))
+
+    success, msg = drp_service.sync_from_google_sheet(sheet_url)
+    if not success:
+        count = len(drp_service.df) if drp_service.df is not None else 0
+        sync_msg = f"{msg} (Currently using local dataset with {count} records)"
+        return redirect(url_for('sync_page', sync_msg=sync_msg, sync_ok=0))
+    return redirect(url_for('sync_page', sync_msg=msg, sync_ok=1))
 
 @app.route('/api/refresh_data', methods=['POST'])
 def api_refresh_data():
@@ -392,7 +408,12 @@ def api_upload_excel():
     
     success, msg = drp_service.load_data(save_path)
     drp_service.last_sync_source = "Uploaded Excel"
-    return redirect(url_for('dashboard'))
+    if success:
+        kpis = drp_service.get_kpis()
+        t1 = kpis.get('tier1_count', 0)
+        success_msg = f"Excel uploaded successfully! Total {len(drp_service.df)} records loaded (Tier 1: {t1})."
+        return redirect(url_for('sync_page', sync_msg=success_msg, sync_ok=1))
+    return redirect(url_for('sync_page', sync_msg=msg, sync_ok=0))
 
 @app.route('/export_csv')
 def export_csv():
