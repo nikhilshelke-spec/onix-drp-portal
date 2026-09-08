@@ -355,8 +355,15 @@ def sync_page():
     if session.get('role') not in ['owner', 'editor']:
         return redirect(url_for('employees'))
     kpis = drp_service.get_kpis()
-    google_sheet_url = drp_service.get_configured_sheet_url()
-    return render_template('settings_sync.html', kpis=kpis, google_sheet_url=google_sheet_url, page='sync')
+    has_data = drp_service.df is not None and len(drp_service.df) > 0
+    return render_template('settings_sync.html', kpis=kpis, has_data=has_data, last_source=drp_service.last_sync_source, page='sync')
+
+@app.route('/api/delete_data', methods=['POST'])
+def api_delete_data():
+    if session.get('role') not in ['owner', 'editor']:
+        return redirect(url_for('employees'))
+    drp_service.delete_data()
+    return redirect(url_for('sync_page', sync_msg="Current dataset deleted. You can now drag and drop a new Excel file.", sync_ok=1))
 
 @app.route('/api/employee/<emp_id>')
 def api_employee_detail(emp_id):
@@ -402,12 +409,24 @@ def api_upload_excel():
     if file.filename == '':
         return redirect(url_for('sync_page'))
     
-    save_path = os.path.join(drp_service.df_path if hasattr(drp_service, 'df_path') else 'data', 'current_data.xlsx')
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ['.xlsx', '.xls', '.csv']:
+        ext = '.xlsx'
+    
+    os.makedirs(DATA_DIR, exist_ok=True)
+    for old_ext in ['.xlsx', '.xls', '.csv']:
+        old_f = os.path.join(DATA_DIR, f"current_data{old_ext}")
+        if os.path.exists(old_f):
+            try:
+                os.remove(old_f)
+            except Exception:
+                pass
+
+    save_path = os.path.join(DATA_DIR, f"current_data{ext}")
     file.save(save_path)
     
     success, msg = drp_service.load_data(save_path)
-    drp_service.last_sync_source = "Uploaded Excel"
+    drp_service.last_sync_source = f"Uploaded File ({file.filename})"
     if success:
         kpis = drp_service.get_kpis()
         t1 = kpis.get('tier1_count', 0)

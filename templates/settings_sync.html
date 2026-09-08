@@ -16,125 +16,229 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
         <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Data Sync & Automation Settings</h1>
-            <p class="text-sm text-slate-500 mt-1">Manage Google Spreadsheet live connection, upload weekly DRP Excel reports, and configure mail settings.</p>
-        </div>
-        <div>
-            <form action="{{ url_for('api_refresh_data') }}" method="POST">
-                <button type="submit" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center space-x-2">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                    <span>🔄 Sync from Google Sheet Now</span>
-                </button>
-            </form>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">DRP Excel Data Management</h1>
+            <p class="text-sm text-slate-500 mt-1">Upload weekly DRP spreadsheet exports (.xlsx, .xls, .csv), view active dataset status, or clear existing data.</p>
         </div>
     </div>
 
-    <!-- Active Connected Google Sheet -->
+    <!-- Active Dataset Status Card -->
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-file-excel"></i>
+                <div class="w-11 h-11 rounded-xl {{ 'bg-emerald-100 text-emerald-700' if has_data else 'bg-amber-100 text-amber-700' }} flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid {{ 'fa-file-excel' if has_data else 'fa-file-circle-xmark' }}"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-900 text-base">Connected Google Spreadsheet</h3>
-                    <p class="text-xs text-slate-500">Live primary source of truth for technical employee tiers</p>
+                    <div class="flex items-center space-x-2">
+                        <h3 class="font-bold text-slate-900 text-base">Active DRP Dataset</h3>
+                        {% if has_data %}
+                        <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-full flex items-center space-x-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Connected & Active</span>
+                        </span>
+                        {% else %}
+                        <span class="px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-full flex items-center space-x-1">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span>No Data Uploaded</span>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        {% if has_data %}
+                        Source: <span class="font-semibold text-slate-700">{{ last_source }}</span> &bull; Total Headcount: <strong class="text-slate-900">{{ kpis.total_headcount }}</strong> employees
+                        {% else %}
+                        No spreadsheet is currently active. Drag and drop an Excel file below to initialize the dashboard.
+                        {% endif %}
+                    </p>
                 </div>
             </div>
-            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg flex items-center space-x-1">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>Live Connection</span>
-            </span>
+
+            {% if has_data %}
+            <!-- Delete & Re-upload Excel button -->
+            <form action="{{ url_for('api_delete_data') }}" method="POST" onsubmit="return confirm('⚠️ Are you sure you want to delete the current dataset? You can immediately upload a new Excel file.');" class="shrink-0">
+                <button type="submit" class="w-full sm:w-auto px-4 py-2.5 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-700 border border-rose-200 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-trash-can text-rose-500"></i>
+                    <span>Delete & Re-upload Excel</span>
+                </button>
+            </form>
+            {% endif %}
         </div>
 
-        <!-- Form to Connect New Google Sheet -->
-        <form action="{{ url_for('api_connect_google_sheet') }}" method="POST" class="space-y-3">
-            <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    <i class="fa-solid fa-link text-emerald-600 mr-1"></i> Paste Google Spreadsheet Link
-                </label>
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <input type="url" name="sheet_url" value="{{ google_sheet_url }}" placeholder="https://docs.google.com/spreadsheets/d/.../edit" required
-                        class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition-all">
-                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 shrink-0 cursor-pointer">
-                        <i class="fa-solid fa-arrows-rotate"></i>
-                        <span>Connect & Sync Sheet</span>
-                    </button>
-                </div>
+        {% if has_data %}
+        <!-- Breakdown pills -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-2 border-t border-slate-100 text-xs">
+            <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100">
+                <span class="text-emerald-800 font-medium block">Tier 1 Mastery</span>
+                <strong class="text-emerald-700 font-extrabold text-base">{{ kpis.tier1_count }}</strong>
+                <span class="text-[11px] text-emerald-600 block">({{ kpis.tier1_pct }}%)</span>
             </div>
-        </form>
-
-        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-700 break-all flex justify-between items-center">
-            <span class="truncate mr-2"><strong>Active:</strong> {{ google_sheet_url }}</span>
-            <a href="{{ google_sheet_url }}" target="_blank" class="px-3 py-1 bg-white hover:bg-slate-100 text-emerald-700 border border-slate-200 rounded text-xs font-sans font-bold flex items-center space-x-1 shrink-0 shadow-sm">
-                <span>Open Sheet</span>
-                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-            </a>
-        </div>
-
-        <!-- Instructions on sharing/publishing -->
-        <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-900 space-y-1.5 leading-relaxed">
-            <div class="font-bold flex items-center space-x-1.5 text-blue-950">
-                <i class="fa-solid fa-circle-info text-blue-600"></i>
-                <span>How to ensure 100% successful Google Sheet Sync:</span>
+            <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
+                <span class="text-blue-800 font-medium block">Tier 2 Advanced</span>
+                <strong class="text-blue-700 font-extrabold text-base">{{ kpis.tier2_count }}</strong>
+                <span class="text-[11px] text-blue-600 block">({{ kpis.tier2_pct }}%)</span>
             </div>
-            <ul class="list-disc list-inside space-y-1 text-[11px] text-blue-800 pl-1">
-                <li><strong>Method 1 (Standard):</strong> In Google Sheet, click <strong>Share</strong> (top right) &rarr; General Access &rarr; set to <strong>"Anyone with the link can view"</strong>.</li>
-                <li><strong>Method 2 (Best for Onix Google Workspace):</strong> In Google Sheet, click <strong>File &rarr; Share &rarr; Publish to web</strong> &rarr; Select <strong>Comma-separated values (.csv)</strong> &rarr; Click <strong>Publish</strong> &rarr; Paste that link above and connect!</li>
-            </ul>
+            <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
+                <span class="text-indigo-800 font-medium block">Tier 3 Intermediate</span>
+                <strong class="text-indigo-700 font-extrabold text-base">{{ kpis.tier3_count }}</strong>
+                <span class="text-[11px] text-indigo-600 block">({{ kpis.tier3_pct }}%)</span>
+            </div>
+            <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-100">
+                <span class="text-amber-800 font-medium block">Tier 4 Foundation</span>
+                <strong class="text-amber-700 font-extrabold text-base">{{ kpis.tier4_count }}</strong>
+                <span class="text-[11px] text-amber-600 block">({{ kpis.tier4_pct }}%)</span>
+            </div>
+            <div class="p-3 bg-rose-50/60 rounded-xl border border-rose-100">
+                <span class="text-rose-800 font-medium block">DRP Not Created</span>
+                <strong class="text-rose-700 font-extrabold text-base">{{ kpis.drp_not_created_count }}</strong>
+                <span class="text-[11px] text-rose-600 block">Need profiles</span>
+            </div>
         </div>
+        {% endif %}
     </div>
 
-    <!-- Excel File Upload Box -->
+    <!-- Excel Drag & Drop Upload Zone -->
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
             </div>
             <div>
-                <h3 class="font-bold text-slate-900 text-base">Upload & Replace DRP Excel Export</h3>
-                <p class="text-xs text-slate-500">Upload downloaded export (.xlsx) to immediately update dashboard offline</p>
+                <h3 class="font-bold text-slate-900 text-base">Drag & Drop DRP Excel Sheet</h3>
+                <p class="text-xs text-slate-500">Drop your `.xlsx` or `.csv` export file here to immediately update all dashboards</p>
             </div>
         </div>
 
-        <form action="{{ url_for('api_upload_excel') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-            <div class="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-8 text-center transition-colors bg-slate-50/50">
-                <i class="fa-solid fa-file-arrow-up text-3xl text-slate-400 mb-2"></i>
-                <p class="text-xs font-semibold text-slate-700">Select `.xlsx` or `.csv` spreadsheet export</p>
-                <p class="text-[11px] text-slate-400 mt-1">Supports standard DRP column layout (Employee ID, Tier, DRP Score, Product, etc.)</p>
-                <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="mt-4 text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+        <form id="uploadForm" action="{{ url_for('api_upload_excel') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <div id="dropZone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50/40 rounded-2xl p-8 sm:p-10 text-center transition-all cursor-pointer bg-slate-50/60 group">
+                <input type="file" id="fileInput" name="file" accept=".xlsx,.xls,.csv" required class="hidden">
+                
+                <div id="dropPrompt" class="space-y-3">
+                    <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white mx-auto flex items-center justify-center text-2xl transition-all shadow-sm">
+                        <i class="fa-solid fa-file-excel"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors">
+                            Drag & drop your Excel file here, or <span class="text-blue-600 underline">browse</span>
+                        </p>
+                        <p class="text-xs text-slate-400 mt-1">Supports Microsoft Excel (.xlsx, .xls) and CSV (.csv)</p>
+                    </div>
+                    <div class="inline-flex items-center px-3 py-1 rounded-full bg-slate-200/70 text-slate-600 text-[11px] font-medium">
+                        <i class="fa-solid fa-shield-halved text-slate-500 mr-1.5"></i>
+                        Direct browser upload &bull; No Google external permissions needed
+                    </div>
+                </div>
+
+                <!-- Selected File Display -->
+                <div id="fileSelected" class="hidden space-y-2">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <p id="fileName" class="text-sm font-bold text-slate-800 font-mono"></p>
+                    <p id="fileSize" class="text-xs text-slate-500 font-sans"></p>
+                    <button type="button" id="changeFileBtn" class="text-xs text-blue-600 hover:text-blue-800 underline font-medium">Choose a different file</button>
+                </div>
             </div>
-            <div class="text-right">
-                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors flex items-center space-x-2 ml-auto">
-                    <i class="fa-solid fa-upload"></i>
-                    <span>Upload & Process Data</span>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <p class="text-[11px] text-slate-500 text-center sm:text-left">
+                    <i class="fa-solid fa-circle-info text-blue-500 mr-1"></i>
+                    Tip: In your Google Sheet, click <strong>File &rarr; Download &rarr; Microsoft Excel (.xlsx)</strong>, then drag it here.
+                </p>
+                <button type="submit" id="submitBtn" class="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer shrink-0">
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                    <span>Upload & Process Excel</span>
                 </button>
             </div>
         </form>
     </div>
 
-    <!-- Active System Metadata -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <h3 class="font-bold text-slate-900 text-base mb-3">Current System Health & Headcount</h3>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span class="text-slate-500">Total Records</span>
-                <strong class="block text-slate-900 font-bold mt-1 text-sm">{{ kpis.total_headcount }}</strong>
-            </div>
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span class="text-slate-500">DRP Profile Created</span>
-                <strong class="block text-emerald-700 font-bold mt-1 text-sm">{{ kpis.drp_created_count }} ({{ kpis.drp_created_pct }}%)</strong>
-            </div>
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span class="text-slate-500">Tier 1 Mastery</span>
-                <strong class="block text-emerald-600 font-bold mt-1 text-sm">{{ kpis.tier1_count }} ({{ kpis.tier1_pct }}%)</strong>
-            </div>
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span class="text-slate-500">DRP ID Not Created</span>
-                <strong class="block text-rose-700 font-bold mt-1 text-sm">{{ kpis.drp_not_created_count }}</strong>
-            </div>
+    <!-- Instructions / Best Practice Guide -->
+    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-2.5">
+        <div class="font-bold text-slate-900 flex items-center space-x-2">
+            <i class="fa-solid fa-lightbulb text-amber-500 text-sm"></i>
+            <span>How weekly Excel updating works:</span>
         </div>
+        <ol class="list-decimal list-inside space-y-1.5 text-slate-600 leading-relaxed pl-1 text-[11px]">
+            <li>Open the master Google Sheet on your Onix account.</li>
+            <li>Click <strong>File &rarr; Download &rarr; Microsoft Excel (.xlsx)</strong>.</li>
+            <li>Drag & drop that downloaded file into the box above and click <strong>Upload & Process Excel</strong>.</li>
+            <li>The dashboard instantly refreshes with exact Tier counts (Tier 1: 107), updated scores, and all employee records!</li>
+            <li>If you ever want to clear the data and upload a fresh copy, click <strong>Delete & Re-upload Excel</strong> above.</li>
+        </ol>
     </div>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const dropPrompt = document.getElementById('dropPrompt');
+    const fileSelected = document.getElementById('fileSelected');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const changeFileBtn = document.getElementById('changeFileBtn');
+
+    function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    function showFile(file) {
+        if (!file) return;
+        fileName.textContent = file.name;
+        fileSize.textContent = formatBytes(file.size);
+        dropPrompt.classList.add('hidden');
+        fileSelected.classList.remove('hidden');
+    }
+
+    dropZone.addEventListener('click', (e) => {
+        if (e.target !== changeFileBtn) {
+            fileInput.click();
+        }
+    });
+
+    changeFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            showFile(fileInput.files[0]);
+        }
+    });
+
+    // Drag and Drop Events
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('border-blue-500', 'bg-blue-50/70');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50/70');
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files.length > 0) {
+            fileInput.files = files;
+            showFile(files[0]);
+        }
+    });
+});
+</script>
 {% endblock %}
+

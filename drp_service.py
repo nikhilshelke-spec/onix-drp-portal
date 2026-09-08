@@ -13,11 +13,25 @@ SHEET_CONFIG_FILE = os.path.join(DATA_DIR, "spreadsheet_config.json")
 class DRPService:
     def __init__(self):
         self.df = None
-        self.last_sync_source = "Local Cache"
-        # On startup: first try Google Sheet, then fall back to local Excel
-        success, msg = self.sync_from_google_sheet()
-        if not success:
-            self.load_data()
+        self.last_sync_source = "Uploaded Excel"
+        self.load_data()
+
+    def delete_data(self):
+        self.df = None
+        for ext in ['.xlsx', '.xls', '.csv']:
+            fpath = os.path.join(DATA_DIR, f"current_data{ext}")
+            if os.path.exists(fpath):
+                try:
+                    os.remove(fpath)
+                except Exception:
+                    pass
+        if os.path.exists(LOCAL_EXCEL_PATH):
+            try:
+                os.remove(LOCAL_EXCEL_PATH)
+            except Exception:
+                pass
+        self.last_sync_source = "None"
+        return True
 
     def get_configured_sheet_url(self):
         os.makedirs(DATA_DIR, exist_ok=True)
@@ -101,9 +115,14 @@ class DRPService:
     def load_data(self, file_path=None):
         target_path = file_path
         if not target_path or not os.path.exists(target_path):
-            if os.path.exists(LOCAL_EXCEL_PATH):
+            for ext in ['.xlsx', '.xls', '.csv']:
+                cand = os.path.join(DATA_DIR, f"current_data{ext}")
+                if os.path.exists(cand):
+                    target_path = cand
+                    break
+            if not target_path and os.path.exists(LOCAL_EXCEL_PATH):
                 target_path = LOCAL_EXCEL_PATH
-            elif os.path.exists(DEFAULT_EXCEL_PATH):
+            elif not target_path and os.path.exists(DEFAULT_EXCEL_PATH):
                 target_path = DEFAULT_EXCEL_PATH
 
         if target_path and os.path.exists(target_path):
