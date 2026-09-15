@@ -6,3 +6,9 @@ cloudflared.exe
 .venv
 env/
 venv/
+data/current_data.*
+data/draft_metadata.json
+data/campaign_history.json
+data/campaign_jobs.json
+data/otp_store.json
+data/uploaded_*

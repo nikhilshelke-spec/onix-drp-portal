@@ -2,10 +2,9 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
-DEFAULT_EXCEL_PATH = r"C:\Users\nikhil.shelke\Downloads\DRP Tier Project.xlsx"
 LOCAL_EXCEL_PATH = os.path.join(DATA_DIR, "current_data.xlsx")
 
-GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1BfjxlXT2oBXGD8wHLn8fM8fJlAdGJOQl_d9YEPxLsx0/edit?gid=0#gid=0"
+GOOGLE_SHEET_URL = ""
 DRP_PORTAL_URL = "https://delivery-readiness-portal.cloud.google/app/login"
 CREDLY_URL = "https://www.credly.com/users/sign_in"
 DRP_MAPPING_SHEET_URL = "https://docs.google.com/spreadsheets/d/18dCDJX27QVROXPPNghIC5F3VxzJ8cawXtOf3xgKtkAI/edit?gid=28087814#gid=28087814"

@@ -5,7 +5,7 @@ import json
 import urllib.request
 import pandas as pd
 import numpy as np
-from config import DEFAULT_EXCEL_PATH, LOCAL_EXCEL_PATH, GOOGLE_SHEET_URL, TIER_DEFINITIONS
+from config import LOCAL_EXCEL_PATH, GOOGLE_SHEET_URL, TIER_DEFINITIONS
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 SHEET_CONFIG_FILE = os.path.join(DATA_DIR, "spreadsheet_config.json")
@@ -439,6 +439,69 @@ class DRPService:
             'all_clusters': sorted(list(set(self.df['cluster'].dropna().tolist())))
         }
 
+    def normalize_product_category(self, p_str):
+        if not p_str or str(p_str).strip().lower() in ['not specified', 'nan', 'none', '']:
+            return 'Not Specified'
+        
+        s = str(p_str).strip()
+        s_low = s.lower()
+        
+        # Table A: 8 Priority Products
+        if 'bigquery' in s_low:
+            return 'BigQuery'
+        if 'dataflow' in s_low:
+            return 'Dataflow'
+        if 'cloud sql' in s_low:
+            return 'Cloud SQL'
+        if 'looker' in s_low:
+            return 'Looker'
+        if 'dataproc' in s_low:
+            return 'Dataproc'
+        if 'alloydb' in s_low:
+            return 'AlloyDB for PostgreSQL'
+        if 'oracle' in s_low:
+            return 'Oracle'
+        if 'spanner' in s_low:
+            return 'Spanner'
+            
+        # Table B: 17 Specified Products
+        if 'threat intelligence' in s_low or s_low == 'gti':
+            return 'Google Threat Intelligence'
+        if 'security command center' in s_low or s_low == 'scc':
+            return 'Security Command Center'
+        if 'security operations' in s_low or 'secops' in s_low:
+            return 'Security Operations'
+        if 'cloud security' in s_low:
+            return 'Cloud Security'
+        if 'vmware engine' in s_low or 'gcve' in s_low:
+            return 'Google Cloud VMware Engine'
+        if 'sap on google' in s_low or s_low == 'sap':
+            return 'SAP on Google Cloud'
+        if 'distributed cloud' in s_low or 'gdc' in s_low:
+            return 'Google Distributed Cloud'
+        if 'compute engine' in s_low or 'gce' in s_low:
+            return 'Google Compute Engine'
+        if 'networking' in s_low:
+            return 'Google Cloud Networking'
+        if 'kubernetes' in s_low or 'gke' in s_low:
+            return 'Google Kubernetes Engine'
+        if 'apigee' in s_low:
+            return 'Apigee API Management'
+        if 'cloud run' in s_low:
+            return 'Cloud Run'
+        if 'gecx' in s_low or 'customer experience' in s_low:
+            return 'Gemini Enterprise for Customer Experience'
+        if 'agent platform' in s_low:
+            return 'Gemini Enterprise Agent Platform'
+        if 'ai applications' in s_low or 'ai apps' in s_low:
+            return 'AI Applications'
+        if 'gemini enterprise' in s_low:
+            return 'Gemini Enterprise'
+        if 'workspace' in s_low:
+            return 'Workspace'
+            
+        return 'Other products'
+
     def get_product_tables(self):
         self.ensure_loaded()
         priority_names = [
@@ -447,8 +510,23 @@ class DRPService:
         ]
 
         other_named_names = [
-            'Gemini Enterprise Agent Platform', 'AI Applications',
-            'Gemini Enterprise', 'Google Kubernetes Engine', 'Workspace'
+            'Cloud Security',
+            'Security Command Center',
+            'Security Operations',
+            'Google Threat Intelligence',
+            'Google Compute Engine',
+            'Google Cloud Networking',
+            'SAP on Google Cloud',
+            'Google Cloud VMware Engine',
+            'Google Distributed Cloud',
+            'Workspace',
+            'Google Kubernetes Engine',
+            'Apigee API Management',
+            'Cloud Run',
+            'Gemini Enterprise Agent Platform',
+            'AI Applications',
+            'Gemini Enterprise',
+            'Gemini Enterprise for Customer Experience'
         ]
 
         if self.df is None or len(self.df) == 0:
@@ -460,18 +538,8 @@ class DRPService:
                 'table_b': {'rows': rows_b, 'grand_total': empty_gt}
             }
 
-        priority_names = [
-            'BigQuery', 'Dataflow', 'Cloud SQL', 'Looker',
-            'Dataproc', 'AlloyDB for PostgreSQL', 'Oracle', 'Spanner'
-        ]
-
-        other_named_names = [
-            'Gemini Enterprise Agent Platform', 'AI Applications',
-            'Gemini Enterprise', 'Google Kubernetes Engine', 'Workspace'
-        ]
-
         df_prod = self.df.copy()
-        df_prod['prod_clean'] = df_prod['product'].fillna('').astype(str).str.strip()
+        df_prod['cat'] = df_prod['product'].apply(self.normalize_product_category)
 
         def compute_row(p_label, matching_mask):
             m_df = df_prod[matching_mask]
@@ -492,7 +560,7 @@ class DRPService:
         # Table A
         table_a_rows = []
         for pname in priority_names:
-            mask = df_prod['prod_clean'].str.lower() == pname.lower()
+            mask = df_prod['cat'] == pname
             table_a_rows.append(compute_row(pname, mask))
 
         a_gt = {
@@ -507,11 +575,10 @@ class DRPService:
         # Table B
         table_b_rows = []
         for pname in other_named_names:
-            mask = df_prod['prod_clean'].str.lower() == pname.lower()
+            mask = df_prod['cat'] == pname
             table_b_rows.append(compute_row(pname, mask))
 
-        all_specified = [x.lower() for x in priority_names + other_named_names]
-        other_mask = (~df_prod['prod_clean'].str.lower().isin(all_specified)) & (~df_prod['prod_clean'].str.lower().isin(['not specified', '', 'nan', 'none']))
+        other_mask = df_prod['cat'] == 'Other products'
         table_b_rows.append(compute_row('Other products', other_mask))
 
         b_gt = {
