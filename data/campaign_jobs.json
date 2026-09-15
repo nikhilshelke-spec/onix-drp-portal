@@ -28,5 +28,36 @@
     ],
     "failed_list": [],
     "error_message": ""
+  },
+  "a06f5440": {
+    "id": "a06f5440",
+    "tier": "Tier 1",
+    "total": 48,
+    "processed": 0,
+    "success_count": 0,
+    "failed_count": 0,
+    "status": "running",
+    "start_time": "2026-09-15 14:21:20",
+    "sent_list": [],
+    "failed_list": [],
+    "error_message": ""
+  },
+  "e7d7344a": {
+    "id": "e7d7344a",
+    "tier": "Tier 1",
+    "total": 48,
+    "processed": 1,
+    "success_count": 1,
+    "failed_count": 0,
+    "status": "running",
+    "start_time": "2026-09-15 14:24:18",
+    "sent_list": [
+      {
+        "name": "Prasad Pramod Kulkarni",
+        "email": "prasad.kulkarni@onixnet.com"
+      }
+    ],
+    "failed_list": [],
+    "error_message": ""
   }
 }

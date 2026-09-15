@@ -178,41 +178,114 @@
 
     </div>
 
-    <!-- Cluster Tier Progression & Top Products -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Cluster Breakdown Chart (2 cols) -->
-        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex justify-between items-center mb-4">
-                <div>
-                    <h3 class="font-bold text-slate-900 text-base">Cluster / Portfolio Tier Progression</h3>
-                    <p class="text-xs text-slate-500">Tier maturity by major business delivery units</p>
-                </div>
-                <a href="{{ url_for('employees') }}" class="text-xs font-semibold hover:underline" style="color: #30496D;">View Employee Hub &rarr;</a>
+    <!-- Cluster Tier Progression Chart (Full Width) -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h3 class="font-bold text-slate-900 text-base">Cluster / Portfolio Tier Progression</h3>
+                <p class="text-xs text-slate-500">Tier maturity by major business delivery units</p>
             </div>
-            <div class="h-64 relative">
-                <canvas id="clusterChart"></canvas>
+            <a href="{{ url_for('employees') }}" class="text-xs font-semibold hover:underline" style="color: #30496D;">View Employee Hub &rarr;</a>
+        </div>
+        <div class="h-64 relative">
+            <canvas id="clusterChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Product Priority & Other Product Tables (Table A & Table B) -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+        
+        <!-- Table A: 8 Google-priority products -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-100/60 flex justify-between items-center">
+                <div>
+                    <h3 class="font-black text-slate-900 text-sm sm:text-base tracking-tight">Table A: DRP profiles with 8 Google-priority products</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Tier distribution across core Google Cloud priority products</p>
+                </div>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 shrink-0">8 Priority</span>
+            </div>
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="py-2.5 px-3.5 sm:px-4 border-r border-slate-200/60">Product</th>
+                            <th class="py-2.5 px-2.5 text-center font-bold text-emerald-700 border-r border-slate-200/60">Tier 1</th>
+                            <th class="py-2.5 px-2.5 text-center font-bold border-r border-slate-200/60" style="color: #30496D;">Tier 2</th>
+                            <th class="py-2.5 px-2.5 text-center font-bold text-amber-700 border-r border-slate-200/60">Tier 3</th>
+                            <th class="py-2.5 px-2.5 text-center font-bold text-purple-700 border-r border-slate-200/60">Tier 4</th>
+                            <th class="py-2.5 px-3.5 text-right font-black text-slate-900">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700">
+                        {% for r in product_tables.table_a.rows %}
+                        <tr class="hover:bg-blue-50/30 transition-colors">
+                            <td class="py-2.5 px-3.5 sm:px-4 font-semibold text-slate-900 border-r border-slate-100">{{ r.product }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-medium text-emerald-700 border-r border-slate-100">{{ r.t1 if r.t1 > 0 else '' }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-medium border-r border-slate-100" style="color: #30496D;">{{ r.t2 if r.t2 > 0 else '' }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-medium text-amber-700 border-r border-slate-100">{{ r.t3 if r.t3 > 0 else '' }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-medium text-purple-700 border-r border-slate-100">{{ r.t4 if r.t4 > 0 else '' }}</td>
+                            <td class="py-2.5 px-3.5 text-right font-bold text-slate-900">{{ r.total if r.total > 0 else '' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-slate-100/80 font-bold border-t-2 border-slate-300 text-slate-900">
+                        <tr>
+                            <td class="py-2.5 px-3.5 sm:px-4 font-black border-r border-slate-200">Grand Total</td>
+                            <td class="py-2.5 px-2.5 text-center font-black text-emerald-700 border-r border-slate-200">{{ product_tables.table_a.grand_total.t1 }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-black border-r border-slate-200" style="color: #30496D;">{{ product_tables.table_a.grand_total.t2 }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-black text-amber-700 border-r border-slate-200">{{ product_tables.table_a.grand_total.t3 }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-black text-purple-700 border-r border-slate-200">{{ product_tables.table_a.grand_total.t4 }}</td>
+                            <td class="py-2.5 px-3.5 text-right font-black text-slate-900">{{ product_tables.table_a.grand_total.total }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
 
-        <!-- Top Products List (1 col) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="mb-4">
-                <h3 class="font-bold text-slate-900 text-base">Top Product Focus Areas</h3>
-                <p class="text-xs text-slate-500">Google Cloud specializations mapped</p>
-            </div>
-            <div class="space-y-3">
-                {% for prod in charts.product_items %}
+        <!-- Table B: Other products -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-100/60 flex justify-between items-center">
                 <div>
-                    <div class="flex justify-between text-xs font-semibold mb-1">
-                        <span class="text-slate-800 truncate">{{ prod.name }}</span>
-                        <span class="text-slate-600">{{ prod.count }} Engineers</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2">
-                        <div class="h-2 rounded-full" style="background-color: #30496D; width: {{ min(100, (prod.count / kpis.total_headcount * 100 * 2.5)|round) }}%"></div>
-                    </div>
+                    <h3 class="font-black text-slate-900 text-sm sm:text-base tracking-tight">Table B : DRP profiles with other products</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Tier distribution across emerging, AI & specialized products</p>
                 </div>
-                {% endfor %}
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 shrink-0">Other Products</span>
+            </div>
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="py-2.5 px-3.5 sm:px-4 border-r border-slate-200/60">Product</th>
+                            <th class="py-2.5 px-2.5 text-center font-bold text-emerald-700 border-r border-slate-200/60">Tier 1</th>
+                            <th class="py-2.5 px-2.5 text-center font-bold border-r border-slate-200/60" style="color: #30496D;">Tier 2</th>
+                            <th class="py-2.5 px-2.5 text-center font-bold text-amber-700 border-r border-slate-200/60">Tier 3</th>
+                            <th class="py-2.5 px-2.5 text-center font-bold text-purple-700 border-r border-slate-200/60">Tier 4</th>
+                            <th class="py-2.5 px-3.5 text-right font-black text-slate-900">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700">
+                        {% for r in product_tables.table_b.rows %}
+                        <tr class="hover:bg-purple-50/30 transition-colors">
+                            <td class="py-2.5 px-3.5 sm:px-4 font-semibold text-slate-900 border-r border-slate-100">{{ r.product }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-medium text-emerald-700 border-r border-slate-100">{{ r.t1 if r.t1 > 0 else '' }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-medium border-r border-slate-100" style="color: #30496D;">{{ r.t2 if r.t2 > 0 else '' }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-medium text-amber-700 border-r border-slate-100">{{ r.t3 if r.t3 > 0 else '' }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-medium text-purple-700 border-r border-slate-100">{{ r.t4 if r.t4 > 0 else '' }}</td>
+                            <td class="py-2.5 px-3.5 text-right font-bold text-slate-900">{{ r.total if r.total > 0 else '' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-slate-100/80 font-bold border-t-2 border-slate-300 text-slate-900">
+                        <tr>
+                            <td class="py-2.5 px-3.5 sm:px-4 font-black border-r border-slate-200">Grand Total</td>
+                            <td class="py-2.5 px-2.5 text-center font-black text-emerald-700 border-r border-slate-200">{{ product_tables.table_b.grand_total.t1 }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-black border-r border-slate-200" style="color: #30496D;">{{ product_tables.table_b.grand_total.t2 }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-black text-amber-700 border-r border-slate-200">{{ product_tables.table_b.grand_total.t3 }}</td>
+                            <td class="py-2.5 px-2.5 text-center font-black text-purple-700 border-r border-slate-200">{{ product_tables.table_b.grand_total.t4 }}</td>
+                            <td class="py-2.5 px-3.5 text-right font-black text-slate-900">{{ product_tables.table_b.grand_total.total }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
 
