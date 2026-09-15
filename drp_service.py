@@ -161,10 +161,6 @@ class DRPService:
             if os.path.exists(cand):
                 target_path = cand
                 break
-        if not target_path and os.path.exists(LOCAL_EXCEL_PATH):
-            target_path = LOCAL_EXCEL_PATH
-        elif not target_path and os.path.exists(DEFAULT_EXCEL_PATH):
-            target_path = DEFAULT_EXCEL_PATH
 
         if target_path and os.path.exists(target_path):
             current_mtime = os.path.getmtime(target_path)
@@ -179,10 +175,6 @@ class DRPService:
                 if os.path.exists(cand):
                     target_path = cand
                     break
-            if not target_path and os.path.exists(LOCAL_EXCEL_PATH):
-                target_path = LOCAL_EXCEL_PATH
-            elif not target_path and os.path.exists(DEFAULT_EXCEL_PATH):
-                target_path = DEFAULT_EXCEL_PATH
 
         if target_path and os.path.exists(target_path):
             try:
@@ -199,6 +191,9 @@ class DRPService:
                 return True, f"Successfully loaded {len(self.df)} records"
             except Exception as e:
                 return False, f"Error loading data: {str(e)}"
+        self.df = None
+        self.file_mtime = 0
+        self.current_loaded_path = None
         return False, "No data file found."
 
     def _clean_and_normalize(self, df):
@@ -330,7 +325,17 @@ class DRPService:
     def get_kpis(self):
         self.ensure_loaded()
         if self.df is None or len(self.df) == 0:
-            return {}
+            return {
+                'total_headcount': 0, 'active_tech_headcount': 0,
+                'tier1_count': 0, 'tier1_pct': 0.0,
+                'tier2_count': 0, 'tier2_pct': 0.0,
+                'tier3_count': 0, 'tier3_pct': 0.0,
+                'tier4_count': 0, 'tier4_pct': 0.0,
+                'zero_score_count': 0, 'zero_score_pct': 0.0,
+                'drp_not_created_count': 0, 'drp_not_created_pct': 0.0,
+                'drp_created_count': 0, 'drp_created_pct': 0.0,
+                'exempted_count': 0, 'avg_score': 0.0
+            }
         
         total = len(self.df)
         counts = self.df['normalized_tier'].value_counts().to_dict()
@@ -380,8 +385,13 @@ class DRPService:
 
     def get_chart_data(self):
         self.ensure_loaded()
-        if self.df is None:
-            return {}
+        if self.df is None or len(self.df) == 0:
+            return {
+                'cluster_dist': [],
+                'product_items': [],
+                'manager_leaderboard': [],
+                'all_clusters': []
+            }
 
         clusters = [c for c in self.df['cluster'].value_counts().index.tolist() if c and c != 'General']
         if not clusters:
@@ -431,8 +441,24 @@ class DRPService:
 
     def get_product_tables(self):
         self.ensure_loaded()
+        priority_names = [
+            'BigQuery', 'Dataflow', 'Cloud SQL', 'Looker',
+            'Dataproc', 'AlloyDB for PostgreSQL', 'Oracle', 'Spanner'
+        ]
+
+        other_named_names = [
+            'Gemini Enterprise Agent Platform', 'AI Applications',
+            'Gemini Enterprise', 'Google Kubernetes Engine', 'Workspace'
+        ]
+
         if self.df is None or len(self.df) == 0:
-            return {'table_a': {'rows': [], 'grand_total': {}}, 'table_b': {'rows': [], 'grand_total': {}}}
+            empty_gt = {'product': 'Grand Total', 't1': 0, 't2': 0, 't3': 0, 't4': 0, 'total': 0}
+            rows_a = [{'product': p, 't1': 0, 't2': 0, 't3': 0, 't4': 0, 'total': 0} for p in priority_names]
+            rows_b = [{'product': p, 't1': 0, 't2': 0, 't3': 0, 't4': 0, 'total': 0} for p in other_named_names + ['Other products']]
+            return {
+                'table_a': {'rows': rows_a, 'grand_total': empty_gt},
+                'table_b': {'rows': rows_b, 'grand_total': empty_gt}
+            }
 
         priority_names = [
             'BigQuery', 'Dataflow', 'Cloud SQL', 'Looker',
