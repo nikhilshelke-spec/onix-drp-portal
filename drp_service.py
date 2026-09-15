@@ -2,7 +2,6 @@ import os
 import io
 import re
 import json
-from datetime import datetime
 import urllib.request
 import pandas as pd
 import numpy as np
@@ -10,110 +9,52 @@ from config import DEFAULT_EXCEL_PATH, LOCAL_EXCEL_PATH, GOOGLE_SHEET_URL, TIER_
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 SHEET_CONFIG_FILE = os.path.join(DATA_DIR, "spreadsheet_config.json")
-DRAFT_META_FILE = os.path.join(DATA_DIR, "draft_metadata.json")
-
-PRIORITY_PRODUCTS = [
-    'BigQuery',
-    'Dataflow',
-    'Cloud SQL',
-    'Looker',
-    'Dataproc',
-    'AlloyDB for PostgreSQL',
-    'Oracle',
-    'Spanner'
-]
-
-OTHER_NAMED_PRODUCTS = [
-    'Gemini Enterprise Agent Platform',
-    'AI Applications',
-    'Gemini Enterprise',
-    'Google Kubernetes Engine',
-    'Workspace'
-]
+DRAFT_METADATA_FILE = os.path.join(DATA_DIR, "draft_metadata.json")
 
 class DRPService:
     def __init__(self):
         self.df = None
         self.last_sync_source = "Uploaded Excel"
-        self.loaded_mtime = None
+        self.file_mtime = 0
+        self.current_loaded_path = None
         self.load_data()
 
-    def get_draft_metadata(self):
+    def get_draft_status(self):
         os.makedirs(DATA_DIR, exist_ok=True)
-        if os.path.exists(DRAFT_META_FILE):
+        if os.path.exists(DRAFT_METADATA_FILE):
             try:
-                with open(DRAFT_META_FILE, 'r', encoding='utf-8') as f:
+                with open(DRAFT_METADATA_FILE, 'r', encoding='utf-8') as f:
                     meta = json.load(f)
-                    if meta.get('is_draft', False):
-                        return meta
+                    if meta.get('is_draft'):
+                        # Check if draft excel actually exists
+                        for ext in ['.xlsx', '.xls', '.csv']:
+                            cand = os.path.join(DATA_DIR, f"current_data{ext}")
+                            if os.path.exists(cand):
+                                meta['exists'] = True
+                                return meta
             except Exception:
                 pass
-        return None
+        return {'is_draft': False, 'exists': False}
 
     def save_as_draft(self, file_path, original_filename):
         os.makedirs(DATA_DIR, exist_ok=True)
+        meta = {
+            'is_draft': True,
+            'filename': original_filename,
+            'uploaded_at': pd.Timestamp.now().strftime("%d %b %Y, %I:%M %p"),
+            'records': len(self.df) if self.df is not None else 0
+        }
         try:
-            if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path)
-            else:
-                df = pd.read_excel(file_path)
-            clean_df = self._clean_and_normalize(df)
-            clean_df.to_excel(LOCAL_EXCEL_PATH, index=False)
-            self.df = clean_df
-            self.last_sync_source = f"Attached Draft ({original_filename})"
-            try:
-                self.loaded_mtime = os.path.getmtime(LOCAL_EXCEL_PATH)
-            except Exception:
-                self.loaded_mtime = None
-
-            meta = {
-                'is_draft': True,
-                'filename': original_filename,
-                'uploaded_at': datetime.now().strftime("%d %b %Y, %I:%M %p"),
-                'total_headcount': len(clean_df),
-                'tier1_count': int((clean_df['normalized_tier'] == 'Tier 1').sum()),
-                'tier2_count': int((clean_df['normalized_tier'] == 'Tier 2').sum()),
-                'tier3_count': int((clean_df['normalized_tier'] == 'Tier 3').sum()),
-                'tier4_count': int((clean_df['normalized_tier'] == 'Tier 4').sum())
-            }
-            with open(DRAFT_META_FILE, 'w', encoding='utf-8') as f:
+            with open(DRAFT_METADATA_FILE, 'w', encoding='utf-8') as f:
                 json.dump(meta, f, indent=2)
-            return True, meta
-        except Exception as e:
-            return False, str(e)
-
-    def delete_draft(self):
-        if os.path.exists(DRAFT_META_FILE):
-            try:
-                os.remove(DRAFT_META_FILE)
-            except Exception:
-                pass
-        return self.delete_data()
-
-    def ensure_loaded(self):
-        target_path = None
-        for ext in ['.xlsx', '.xls', '.csv']:
-            cand = os.path.join(DATA_DIR, f"current_data{ext}")
-            if os.path.exists(cand):
-                target_path = cand
-                break
-        if not target_path and os.path.exists(LOCAL_EXCEL_PATH):
-            target_path = LOCAL_EXCEL_PATH
-
-        if target_path and os.path.exists(target_path):
-            try:
-                mtime = os.path.getmtime(target_path)
-                if self.df is None or getattr(self, 'loaded_mtime', None) != mtime:
-                    self.load_data(target_path)
-                    self.loaded_mtime = mtime
-            except Exception:
-                pass
-        elif self.df is None:
-            self.load_data()
+        except Exception:
+            pass
+        self.last_sync_source = f"Draft Excel ({original_filename})"
 
     def delete_data(self):
         self.df = None
-        self.loaded_mtime = None
+        self.file_mtime = 0
+        self.current_loaded_path = None
         for ext in ['.xlsx', '.xls', '.csv']:
             fpath = os.path.join(DATA_DIR, f"current_data{ext}")
             if os.path.exists(fpath):
@@ -126,9 +67,9 @@ class DRPService:
                 os.remove(LOCAL_EXCEL_PATH)
             except Exception:
                 pass
-        if os.path.exists(DRAFT_META_FILE):
+        if os.path.exists(DRAFT_METADATA_FILE):
             try:
-                os.remove(DRAFT_META_FILE)
+                os.remove(DRAFT_METADATA_FILE)
             except Exception:
                 pass
         self.last_sync_source = "None"
@@ -213,6 +154,23 @@ class DRPService:
                 )
             return False, f"{err_msg}"
 
+    def ensure_loaded(self):
+        target_path = None
+        for ext in ['.xlsx', '.xls', '.csv']:
+            cand = os.path.join(DATA_DIR, f"current_data{ext}")
+            if os.path.exists(cand):
+                target_path = cand
+                break
+        if not target_path and os.path.exists(LOCAL_EXCEL_PATH):
+            target_path = LOCAL_EXCEL_PATH
+        elif not target_path and os.path.exists(DEFAULT_EXCEL_PATH):
+            target_path = DEFAULT_EXCEL_PATH
+
+        if target_path and os.path.exists(target_path):
+            current_mtime = os.path.getmtime(target_path)
+            if self.df is None or current_mtime > self.file_mtime or self.current_loaded_path != target_path:
+                self.load_data(target_path)
+
     def load_data(self, file_path=None):
         target_path = file_path
         if not target_path or not os.path.exists(target_path):
@@ -233,6 +191,11 @@ class DRPService:
                 else:
                     df = pd.read_excel(target_path)
                 self.df = self._clean_and_normalize(df)
+                self.file_mtime = os.path.getmtime(target_path)
+                self.current_loaded_path = target_path
+                meta = self.get_draft_status()
+                if meta.get('is_draft'):
+                    self.last_sync_source = f"Draft Excel ({meta.get('filename')})"
                 return True, f"Successfully loaded {len(self.df)} records"
             except Exception as e:
                 return False, f"Error loading data: {str(e)}"
@@ -468,39 +431,45 @@ class DRPService:
 
     def get_product_tables(self):
         self.ensure_loaded()
-        empty_res = {
-            'table_a': {'rows': [], 'grand_total': {'product': 'Grand Total', 't1': 0, 't2': 0, 't3': 0, 't4': 0, 'total': 0}},
-            'table_b': {'rows': [], 'grand_total': {'product': 'Grand Total', 't1': 0, 't2': 0, 't3': 0, 't4': 0, 'total': 0}}
-        }
         if self.df is None or len(self.df) == 0:
-            return empty_res
+            return {'table_a': {'rows': [], 'grand_total': {}}, 'table_b': {'rows': [], 'grand_total': {}}}
 
-        df = self.df
-        p_clean = df['product'].astype(str).str.strip()
+        priority_names = [
+            'BigQuery', 'Dataflow', 'Cloud SQL', 'Looker',
+            'Dataproc', 'AlloyDB for PostgreSQL', 'Oracle', 'Spanner'
+        ]
 
-        def compute_row(prod_label, mask):
-            sub = df[mask]
-            t1 = int((sub['normalized_tier'] == 'Tier 1').sum())
-            t2 = int((sub['normalized_tier'] == 'Tier 2').sum())
-            t3 = int((sub['normalized_tier'] == 'Tier 3').sum())
-            t4 = int((sub['normalized_tier'] == 'Tier 4').sum())
-            tot = t1 + t2 + t3 + t4
+        other_named_names = [
+            'Gemini Enterprise Agent Platform', 'AI Applications',
+            'Gemini Enterprise', 'Google Kubernetes Engine', 'Workspace'
+        ]
+
+        df_prod = self.df.copy()
+        df_prod['prod_clean'] = df_prod['product'].fillna('').astype(str).str.strip()
+
+        def compute_row(p_label, matching_mask):
+            m_df = df_prod[matching_mask]
+            t1 = int((m_df['normalized_tier'] == 'Tier 1').sum())
+            t2 = int((m_df['normalized_tier'] == 'Tier 2').sum())
+            t3 = int((m_df['normalized_tier'] == 'Tier 3').sum())
+            t4 = int((m_df['normalized_tier'] == 'Tier 4').sum())
+            total = t1 + t2 + t3 + t4
             return {
-                'product': prod_label,
+                'product': p_label,
                 't1': t1,
                 't2': t2,
                 't3': t3,
                 't4': t4,
-                'total': tot
+                'total': total
             }
 
-        # Table A: 8 Google-priority products
+        # Table A
         table_a_rows = []
-        for p in PRIORITY_PRODUCTS:
-            mask = p_clean.str.lower() == p.strip().lower()
-            table_a_rows.append(compute_row(p, mask))
+        for pname in priority_names:
+            mask = df_prod['prod_clean'].str.lower() == pname.lower()
+            table_a_rows.append(compute_row(pname, mask))
 
-        grand_a = {
+        a_gt = {
             'product': 'Grand Total',
             't1': sum(r['t1'] for r in table_a_rows),
             't2': sum(r['t2'] for r in table_a_rows),
@@ -509,21 +478,17 @@ class DRPService:
             'total': sum(r['total'] for r in table_a_rows)
         }
 
-        # Table B: Other Named Products
+        # Table B
         table_b_rows = []
-        for p in OTHER_NAMED_PRODUCTS:
-            mask = p_clean.str.lower() == p.strip().lower()
-            table_b_rows.append(compute_row(p, mask))
+        for pname in other_named_names:
+            mask = df_prod['prod_clean'].str.lower() == pname.lower()
+            table_b_rows.append(compute_row(pname, mask))
 
-        # Table B: Aggregated 'Other products' row
-        all_named_lower = [x.strip().lower() for x in PRIORITY_PRODUCTS + OTHER_NAMED_PRODUCTS]
-        other_mask = (
-            (~p_clean.str.lower().isin(all_named_lower)) &
-            (~p_clean.str.lower().isin(['not specified', 'nan', 'none', '']))
-        )
+        all_specified = [x.lower() for x in priority_names + other_named_names]
+        other_mask = (~df_prod['prod_clean'].str.lower().isin(all_specified)) & (~df_prod['prod_clean'].str.lower().isin(['not specified', '', 'nan', 'none']))
         table_b_rows.append(compute_row('Other products', other_mask))
 
-        grand_b = {
+        b_gt = {
             'product': 'Grand Total',
             't1': sum(r['t1'] for r in table_b_rows),
             't2': sum(r['t2'] for r in table_b_rows),
@@ -533,17 +498,17 @@ class DRPService:
         }
 
         return {
-            'table_a': {'rows': table_a_rows, 'grand_total': grand_a},
-            'table_b': {'rows': table_b_rows, 'grand_total': grand_b}
+            'table_a': {'rows': table_a_rows, 'grand_total': a_gt},
+            'table_b': {'rows': table_b_rows, 'grand_total': b_gt}
         }
 
     def get_user_scope(self, verified_email, role='user'):
-        self.ensure_loaded()
         """
         Determines the accessible employee scope for a user based on their verified email.
         - Owner/Editor/Leader: full access across all employees.
         - Regular verified user: their own record + direct reports where they are manager.
         """
+        self.ensure_loaded()
         if self.df is None or len(self.df) == 0:
             return {'my_record': None, 'direct_reports': [], 'is_manager': False, 'allowed_df': None, 'is_admin': False}
 
@@ -593,7 +558,6 @@ class DRPService:
         }
 
     def filter_employees(self, tier=None, manager=None, cluster=None, product=None, search=None, base_df=None):
-        self.ensure_loaded()
         target_df = base_df if base_df is not None else self.df
         if target_df is None:
             return []
@@ -622,7 +586,6 @@ class DRPService:
         return filtered.to_dict(orient='records')
 
     def get_filter_options(self, base_df=None):
-        self.ensure_loaded()
         target_df = base_df if base_df is not None else self.df
         if target_df is None or len(target_df) == 0:
             return {'managers': [], 'clusters': [], 'products': [], 'tiers': []}
@@ -634,7 +597,6 @@ class DRPService:
         }
 
     def get_employee(self, emp_id):
-        self.ensure_loaded()
         if self.df is None:
             return None
         match = self.df[self.df['employee_id'] == str(emp_id)]

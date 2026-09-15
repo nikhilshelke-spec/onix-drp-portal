@@ -31,10 +31,10 @@
                 <div>
                     <div class="flex items-center space-x-2">
                         <h3 class="font-bold text-slate-900 text-base">Active DRP Dataset</h3>
-                        {% if draft_meta %}
+                        {% if draft_info.is_draft %}
                         <span class="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-full flex items-center space-x-1">
                             <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                            <span>Draft Attached & Locked</span>
+                            <span>Draft Excel Attached</span>
                         </span>
                         {% elif has_data %}
                         <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-full flex items-center space-x-1">
@@ -49,8 +49,8 @@
                         {% endif %}
                     </div>
                     <p class="text-xs text-slate-500 mt-0.5">
-                        {% if draft_meta %}
-                        Draft File: <span class="font-semibold text-slate-800">{{ draft_meta.filename }}</span> &bull; Attached: <span class="text-slate-600">{{ draft_meta.uploaded_at }}</span> &bull; Total Headcount: <strong class="text-slate-900">{{ draft_meta.total_headcount }}</strong>
+                        {% if draft_info.is_draft %}
+                        Attached Draft: <strong class="text-slate-800 font-mono">{{ draft_info.filename }}</strong> &bull; Saved: <span class="text-slate-700 font-medium">{{ draft_info.uploaded_at }}</span> &bull; Records: <strong class="text-slate-900">{{ draft_info.records }}</strong>
                         {% elif has_data %}
                         Source: <span class="font-semibold text-slate-700">{{ last_source }}</span> &bull; Total Headcount: <strong class="text-slate-900">{{ kpis.total_headcount }}</strong> employees
                         {% else %}
@@ -60,9 +60,9 @@
                 </div>
             </div>
 
-            {% if has_data or draft_meta %}
-            <!-- Delete Draft & Re-upload Excel button -->
-            <form action="{{ url_for('api_delete_data') }}" method="POST" onsubmit="return confirm('⚠️ Are you sure you want to delete the current draft dataset? This will unlock the upload zone so you can attach a new Excel file.');" class="shrink-0">
+            {% if has_data or draft_info.is_draft %}
+            <!-- Delete & Re-upload Excel button -->
+            <form action="{{ url_for('api_delete_data') }}" method="POST" onsubmit="return confirm('⚠️ Are you sure you want to delete the active draft dataset? This will unlock the page to allow a new Excel file upload.');" class="shrink-0">
                 <button type="submit" class="w-full sm:w-auto px-4 py-2.5 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-700 border border-rose-200 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer">
                     <i class="fa-solid fa-trash-can text-rose-500"></i>
                     <span>Delete Draft & Unlock Upload</span>
@@ -115,26 +115,29 @@
             </div>
         </div>
 
-        {% if draft_meta %}
-        <!-- Locked State when Draft is Active -->
-        <div class="p-8 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl text-center space-y-3">
-            <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center text-2xl shadow-sm">
-                <i class="fa-solid fa-lock"></i>
+        {% if draft_info.is_draft and draft_info.exists %}
+        <!-- Locked Draft Protected Box -->
+        <div class="border-2 border-indigo-200 bg-indigo-50/50 rounded-2xl p-8 text-center space-y-4">
+            <div class="w-16 h-16 rounded-2xl bg-indigo-100 text-indigo-700 mx-auto flex items-center justify-center text-3xl shadow-sm">
+                <i class="fa-solid fa-file-shield"></i>
             </div>
-            <div>
-                <h4 class="font-bold text-slate-900 text-sm">Upload Locked &bull; Draft Currently Attached</h4>
-                <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                    The dataset from <strong class="text-slate-800 font-mono">"{{ draft_meta.filename }}"</strong> is saved as draft and actively powering all dashboards and email campaigns.
+            <div class="max-w-md mx-auto space-y-1">
+                <span class="px-3 py-1 bg-indigo-600 text-white font-extrabold text-[11px] rounded-full uppercase tracking-wider">Active Draft Attached</span>
+                <h4 class="text-base font-extrabold text-slate-900 font-mono pt-1">{{ draft_info.filename }}</h4>
+                <p class="text-xs text-slate-600">Saved on <strong>{{ draft_info.uploaded_at }}</strong> &bull; Total <strong>{{ draft_info.records }}</strong> records active.</p>
+                <p class="text-[11px] text-indigo-900 pt-2 leading-relaxed">
+                    🔒 <strong>Draft Lock Active:</strong> To prevent accidental overwrites, new Excel uploads are disabled while this draft is attached. Click <strong>Delete Draft & Unlock Upload</strong> to clear this draft and attach a new file.
                 </p>
             </div>
-            <div class="pt-2">
-                <p class="text-[11px] text-slate-400">
-                    To upload a new Excel file, please delete the current draft using the <strong>"Delete Draft & Unlock Upload"</strong> button above.
-                </p>
-            </div>
+            <form action="{{ url_for('api_delete_data') }}" method="POST" onsubmit="return confirm('⚠️ Are you sure you want to delete this draft and upload a new Excel file?');" class="pt-2">
+                <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Delete Draft & Unlock Upload</span>
+                </button>
+            </form>
         </div>
         {% else %}
-        <!-- Active Upload Form -->
+        <!-- Unlocked Drag and Drop Form -->
         <form id="uploadForm" action="{{ url_for('api_upload_excel') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             <div id="dropZone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50/40 rounded-2xl p-8 sm:p-10 text-center transition-all cursor-pointer bg-slate-50/60 group">
                 <input type="file" id="fileInput" name="file" accept=".xlsx,.xls,.csv" required class="hidden">
@@ -151,7 +154,7 @@
                     </div>
                     <div class="inline-flex items-center px-3 py-1 rounded-full bg-slate-200/70 text-slate-600 text-[11px] font-medium">
                         <i class="fa-solid fa-shield-halved text-slate-500 mr-1.5"></i>
-                        Direct browser upload &bull; Auto-saved as locked draft
+                        Direct browser upload &bull; No Google external permissions needed
                     </div>
                 </div>
 
@@ -173,7 +176,7 @@
                 </p>
                 <button type="submit" id="submitBtn" class="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer shrink-0">
                     <i class="fa-solid fa-arrow-up-from-bracket"></i>
-                    <span>Upload & Process Draft</span>
+                    <span>Upload & Process Excel</span>
                 </button>
             </div>
         </form>
@@ -189,9 +192,9 @@
         <ol class="list-decimal list-inside space-y-1.5 text-slate-600 leading-relaxed pl-1 text-[11px]">
             <li>Open the master Google Sheet on your Onix account.</li>
             <li>Click <strong>File &rarr; Download &rarr; Microsoft Excel (.xlsx)</strong>.</li>
-            <li>Drag & drop that downloaded file into the box above and click <strong>Upload & Process Draft</strong>.</li>
-            <li>The dataset is saved as an active locked draft, updating all dashboards and email campaigns.</li>
-            <li>If you ever want to clear the data and upload a fresh copy, click <strong>Delete Draft & Unlock Upload</strong> above.</li>
+            <li>Drag & drop that downloaded file into the box above and click <strong>Upload & Process Excel</strong>.</li>
+            <li>The dashboard instantly refreshes with exact Tier counts (Tier 1: 107), updated scores, and all employee records!</li>
+            <li>If you ever want to clear the data and upload a fresh copy, click <strong>Delete & Re-upload Excel</strong> above.</li>
         </ol>
     </div>
 
@@ -201,7 +204,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
-    if (!dropZone || !fileInput) return;
     const dropPrompt = document.getElementById('dropPrompt');
     const fileSelected = document.getElementById('fileSelected');
     const fileName = document.getElementById('fileName');

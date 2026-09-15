@@ -64,7 +64,7 @@ def inject_global_vars():
         'verified_email': verified_email,
         'user_email': session.get('user_email', OWNER_EMAIL if role == 'owner' else verified_email),
         'last_sync_source': drp_service.last_sync_source,
-        'draft_meta': drp_service.get_draft_metadata()
+        'draft_info': drp_service.get_draft_status()
     }
 
 def _get_shareable_base_url():
@@ -358,15 +358,14 @@ def sync_page():
         return redirect(url_for('employees'))
     kpis = drp_service.get_kpis()
     has_data = drp_service.df is not None and len(drp_service.df) > 0
-    draft_meta = drp_service.get_draft_metadata()
-    return render_template('settings_sync.html', kpis=kpis, has_data=has_data, draft_meta=draft_meta, last_source=drp_service.last_sync_source, page='sync')
+    return render_template('settings_sync.html', kpis=kpis, has_data=has_data, last_source=drp_service.last_sync_source, page='sync')
 
 @app.route('/api/delete_data', methods=['POST'])
 def api_delete_data():
     if session.get('role') not in ['owner', 'editor']:
         return redirect(url_for('employees'))
-    drp_service.delete_draft()
-    return redirect(url_for('sync_page', sync_msg="Active draft deleted successfully. You can now drag and drop a new Excel file.", sync_ok=1))
+    drp_service.delete_data()
+    return redirect(url_for('sync_page', sync_msg="Current Excel draft dataset deleted. You can now drag and drop a new Excel file.", sync_ok=1))
 
 @app.route('/api/employee/<emp_id>')
 def api_employee_detail(emp_id):
@@ -406,23 +405,22 @@ def api_upload_excel():
     if session.get('role') not in ['owner', 'editor']:
         return redirect(url_for('employees'))
 
-    existing_draft = drp_service.get_draft_metadata()
-    force = request.form.get('force', '0') == '1'
-    if existing_draft and not force:
-        fname = existing_draft.get('filename', 'existing file')
-        msg = f"A draft dataset ('{fname}') is currently attached and active. Please delete the current draft before uploading a new Excel file."
+    # Check if a draft Excel is active and locked
+    draft_info = drp_service.get_draft_status()
+    if draft_info.get('is_draft') and draft_info.get('exists'):
+        msg = f"⚠️ An active Excel draft ('{draft_info.get('filename')}') is currently attached. Please delete the active draft before uploading a new file."
         return redirect(url_for('sync_page', sync_msg=msg, sync_ok=0))
-
+        
     if 'file' not in request.files:
         return redirect(url_for('sync_page'))
     file = request.files['file']
     if file.filename == '':
         return redirect(url_for('sync_page'))
-
+    
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ['.xlsx', '.xls', '.csv']:
         ext = '.xlsx'
-
+    
     os.makedirs(DATA_DIR, exist_ok=True)
     for old_ext in ['.xlsx', '.xls', '.csv']:
         old_f = os.path.join(DATA_DIR, f"current_data{old_ext}")
@@ -434,14 +432,15 @@ def api_upload_excel():
 
     save_path = os.path.join(DATA_DIR, f"current_data{ext}")
     file.save(save_path)
-
-    success, meta_or_err = drp_service.save_as_draft(save_path, file.filename)
+    
+    success, msg = drp_service.load_data(save_path)
     if success:
+        drp_service.save_as_draft(save_path, file.filename)
         kpis = drp_service.get_kpis()
         t1 = kpis.get('tier1_count', 0)
-        success_msg = f"Excel draft attached successfully! Total {len(drp_service.df)} records loaded (Tier 1: {t1}). Draft is now locked."
+        success_msg = f"Excel uploaded and saved as active draft ('{file.filename}')! Total {len(drp_service.df)} records loaded (Tier 1: {t1})."
         return redirect(url_for('sync_page', sync_msg=success_msg, sync_ok=1))
-    return redirect(url_for('sync_page', sync_msg=f"Error loading Excel: {meta_or_err}", sync_ok=0))
+    return redirect(url_for('sync_page', sync_msg=msg, sync_ok=0))
 
 @app.route('/export_csv')
 def export_csv():
