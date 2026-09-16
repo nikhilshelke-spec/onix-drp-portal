@@ -116,7 +116,13 @@
                 </div>
                 <div class="flex justify-between items-center text-xs text-slate-600 font-medium">
                     <span>Delivery Channel</span>
-                    <span class="font-bold text-slate-800"><i class="fa-brands fa-google text-red-500 mr-1"></i>Gmail SMTP</span>
+                    <span class="font-bold text-slate-800"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i>Cloud Engine</span>
+                </div>
+                <div class="pt-1">
+                    <button type="button" onclick="openEmailConfigModal()" class="w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl font-bold text-xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm">
+                        <i class="fa-solid fa-gear text-amber-600"></i>
+                        <span>⚙️ Email Sender & Webhook Setup</span>
+                    </button>
                 </div>
             </div>
 
@@ -508,6 +514,23 @@
         </details>
       </div>
 
+      <!-- Brevo API Setup -->
+      <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-emerald-950 flex items-center space-x-1.5 text-xs">
+            <i class="fa-solid fa-key text-emerald-600"></i>
+            <span>Brevo (Sendinblue) Free API Key (Alternative)</span>
+          </span>
+          <span class="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded font-bold">Free 300 emails/day</span>
+        </div>
+        <p class="text-[11px] text-emerald-900 leading-relaxed">
+          Sign up at <a href="https://www.brevo.com" target="_blank" class="text-blue-700 underline font-bold">brevo.com</a> (free, no credit card), copy your API key from SMTP & API section, and paste here.
+        </p>
+        <div>
+          <input type="password" id="cfgBrevoKey" placeholder="xkeysib-..." class="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-slate-900 font-mono text-[11px] outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner" />
+        </div>
+      </div>
+
       <!-- Test Connection Box -->
       <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2">
         <div class="flex-1">
@@ -814,6 +837,7 @@
                     if (data.user) document.getElementById('cfgSenderEmail').value = data.user;
                     if (data.sender_name) document.getElementById('cfgSenderName').value = data.sender_name;
                     if (data.webhook_url) document.getElementById('cfgWebhookUrl').value = data.webhook_url;
+                    if (data.brevo_api_key) document.getElementById('cfgBrevoKey').value = data.brevo_api_key;
                 }
             } catch (e) { console.error(e); }
         }
@@ -823,6 +847,7 @@
         const senderName = document.getElementById('cfgSenderName').value.trim();
         const senderEmail = document.getElementById('cfgSenderEmail').value.trim();
         const webhookUrl = document.getElementById('cfgWebhookUrl').value.trim();
+        const brevoKey = document.getElementById('cfgBrevoKey').value.trim();
         const fb = document.getElementById('cfgFeedbackBox');
 
         try {
@@ -832,7 +857,8 @@
                 body: JSON.stringify({
                     sender_name: senderName,
                     user: senderEmail,
-                    webhook_url: webhookUrl
+                    webhook_url: webhookUrl,
+                    brevo_api_key: brevoKey
                 })
             });
             const data = await res.json();

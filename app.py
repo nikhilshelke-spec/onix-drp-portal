@@ -342,12 +342,14 @@ def api_email_settings():
             'user': cfg.get('user', 'nikhil.shelke@onixnet.com'),
             'sender_name': cfg.get('sender_name', 'Nikhil Shelke'),
             'webhook_url': cfg.get('webhook_url', ''),
+            'brevo_api_key': cfg.get('brevo_api_key', ''),
             'has_password': bool(cfg.get('password'))
         }
         return jsonify(safe_cfg)
 
     data = request.get_json() or {}
     webhook_url = data.get('webhook_url', '').strip()
+    brevo_api_key = data.get('brevo_api_key', '').strip()
     user = data.get('user', 'nikhil.shelke@onixnet.com').strip()
     password = data.get('password', '').strip()
     sender_name = data.get('sender_name', 'Nikhil Shelke').strip()
@@ -356,7 +358,8 @@ def api_email_settings():
         user=user,
         password=password if password else None,
         sender_name=sender_name,
-        webhook_url=webhook_url
+        webhook_url=webhook_url,
+        brevo_api_key=brevo_api_key
     )
     return jsonify({'success': True, 'message': 'Email configuration updated successfully!'})
 
