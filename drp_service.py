@@ -651,6 +651,7 @@ class DRPService:
         }
 
     def filter_employees(self, tier=None, manager=None, cluster=None, product=None, search=None, base_df=None):
+        self.ensure_loaded()
         target_df = base_df if base_df is not None else self.df
         if target_df is None:
             return []
@@ -679,6 +680,7 @@ class DRPService:
         return filtered.to_dict(orient='records')
 
     def get_filter_options(self, base_df=None):
+        self.ensure_loaded()
         target_df = base_df if base_df is not None else self.df
         if target_df is None or len(target_df) == 0:
             return {'managers': [], 'clusters': [], 'products': [], 'tiers': []}
@@ -690,6 +692,7 @@ class DRPService:
         }
 
     def get_employee(self, emp_id):
+        self.ensure_loaded()
         if self.df is None:
             return None
         match = self.df[self.df['employee_id'] == str(emp_id)]

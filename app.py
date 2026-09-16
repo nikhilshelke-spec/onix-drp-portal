@@ -315,6 +315,7 @@ def api_start_campaign_job():
         return jsonify({'error': 'Permission denied'}), 403
     data = request.get_json() or {}
     tier = data.get('tier', 'Tier 4')
+    drp_service.ensure_loaded()
     recipients = drp_service.filter_employees(tier=tier)
 
     if not recipients:
