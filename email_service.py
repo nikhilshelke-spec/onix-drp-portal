@@ -3,9 +3,22 @@ import json
 import time
 import uuid
 import smtplib
+import socket
 import threading
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Force IPv4 resolution for sockets to fix Render container IPv6 network unreachable errors
+_old_getaddrinfo = socket.getaddrinfo
+def _allowed_gai_families(*args, **kwargs):
+    try:
+        responses = _old_getaddrinfo(*args, **kwargs)
+        ipv4_res = [r for r in responses if r[0] == socket.AF_INET]
+        return ipv4_res if ipv4_res else responses
+    except Exception:
+        return _old_getaddrinfo(*args, **kwargs)
+
+socket.getaddrinfo = _allowed_gai_families
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from urllib.parse import quote
