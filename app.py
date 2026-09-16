@@ -431,15 +431,32 @@ def api_resend_failed_emails():
 def sync_page():
     if session.get('role') not in ['owner', 'editor']:
         return redirect(url_for('employees'))
-    kpis = drp_service.get_kpis()
-    has_data = drp_service.df is not None and len(drp_service.df) > 0
-    return render_template('settings_sync.html', kpis=kpis, has_data=has_data, last_source=drp_service.last_sync_source, page='sync')
+    try:
+        kpis = drp_service.get_kpis()
+        has_data = drp_service.df is not None and len(drp_service.df) > 0
+        return render_template('settings_sync.html', kpis=kpis, has_data=has_data, last_source=drp_service.last_sync_source, page='sync')
+    except Exception:
+        empty_kpis = {
+            'total_headcount': 0, 'active_tech_headcount': 0,
+            'tier1_count': 0, 'tier1_pct': 0.0,
+            'tier2_count': 0, 'tier2_pct': 0.0,
+            'tier3_count': 0, 'tier3_pct': 0.0,
+            'tier4_count': 0, 'tier4_pct': 0.0,
+            'zero_score_count': 0, 'zero_score_pct': 0.0,
+            'drp_not_created_count': 0, 'drp_not_created_pct': 0.0,
+            'drp_created_count': 0, 'drp_created_pct': 0.0,
+            'exempted_count': 0, 'avg_score': 0.0
+        }
+        return render_template('settings_sync.html', kpis=empty_kpis, has_data=False, last_source="None", page='sync')
 
 @app.route('/api/delete_data', methods=['POST'])
 def api_delete_data():
     if session.get('role') not in ['owner', 'editor']:
         return redirect(url_for('employees'))
-    drp_service.delete_data()
+    try:
+        drp_service.delete_data()
+    except Exception:
+        pass
     return redirect(url_for('sync_page', sync_msg="Current Excel draft dataset deleted. You can now drag and drop a new Excel file.", sync_ok=1))
 
 @app.route('/api/employee/<emp_id>')
@@ -458,64 +475,73 @@ def api_connect_google_sheet():
     if not sheet_url:
         return redirect(url_for('sync_page', sync_msg="Please enter a valid Google Sheet link.", sync_ok=0))
 
-    success, msg = drp_service.sync_from_google_sheet(sheet_url)
-    if not success:
-        count = len(drp_service.df) if drp_service.df is not None else 0
-        sync_msg = f"{msg} (Currently using local dataset with {count} records)"
-        return redirect(url_for('sync_page', sync_msg=sync_msg, sync_ok=0))
-    return redirect(url_for('sync_page', sync_msg=msg, sync_ok=1))
+    try:
+        success, msg = drp_service.sync_from_google_sheet(sheet_url)
+        if not success:
+            count = len(drp_service.df) if drp_service.df is not None else 0
+            sync_msg = f"{msg} (Currently using local dataset with {count} records)"
+            return redirect(url_for('sync_page', sync_msg=sync_msg, sync_ok=0))
+        return redirect(url_for('sync_page', sync_msg=msg, sync_ok=1))
+    except Exception as ex:
+        return redirect(url_for('sync_page', sync_msg=f"Sync error: {str(ex)}", sync_ok=0))
 
 @app.route('/api/refresh_data', methods=['POST'])
 def api_refresh_data():
-    success, msg = drp_service.sync_from_google_sheet()
-    if not success:
-        load_ok, _ = drp_service.load_data()
-        count = len(drp_service.df) if drp_service.df is not None else 0
-        sync_msg = f"{msg} (Currently using local dataset with {count} records)"
-        return redirect(url_for('sync_page', sync_msg=sync_msg, sync_ok=0))
-    return redirect(url_for('sync_page', sync_msg=msg, sync_ok=1))
+    try:
+        success, msg = drp_service.sync_from_google_sheet()
+        if not success:
+            load_ok, _ = drp_service.load_data()
+            count = len(drp_service.df) if drp_service.df is not None else 0
+            sync_msg = f"{msg} (Currently using local dataset with {count} records)"
+            return redirect(url_for('sync_page', sync_msg=sync_msg, sync_ok=0))
+        return redirect(url_for('sync_page', sync_msg=msg, sync_ok=1))
+    except Exception as ex:
+        return redirect(url_for('sync_page', sync_msg=f"Refresh error: {str(ex)}", sync_ok=0))
 
 @app.route('/api/upload_excel', methods=['POST'])
 def api_upload_excel():
     if session.get('role') not in ['owner', 'editor']:
         return redirect(url_for('employees'))
 
-    # Check if a draft Excel is active and locked
-    draft_info = drp_service.get_draft_status()
-    if draft_info.get('is_draft') and draft_info.get('exists'):
-        msg = f"⚠️ An active Excel draft ('{draft_info.get('filename')}') is currently attached. Please delete the active draft before uploading a new file."
-        return redirect(url_for('sync_page', sync_msg=msg, sync_ok=0))
+    try:
+        # Check if a draft Excel is active and locked
+        draft_info = drp_service.get_draft_status()
+        if draft_info.get('is_draft') and draft_info.get('exists'):
+            msg = f"⚠️ An active Excel draft ('{draft_info.get('filename')}') is currently attached. Please delete the active draft before uploading a new file."
+            return redirect(url_for('sync_page', sync_msg=msg, sync_ok=0))
+            
+        if 'file' not in request.files:
+            return redirect(url_for('sync_page', sync_msg="No file provided in upload.", sync_ok=0))
+        file = request.files['file']
+        if file.filename == '':
+            return redirect(url_for('sync_page', sync_msg="No file selected.", sync_ok=0))
         
-    if 'file' not in request.files:
-        return redirect(url_for('sync_page'))
-    file = request.files['file']
-    if file.filename == '':
-        return redirect(url_for('sync_page'))
-    
-    ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in ['.xlsx', '.xls', '.csv']:
-        ext = '.xlsx'
-    
-    os.makedirs(DATA_DIR, exist_ok=True)
-    for old_ext in ['.xlsx', '.xls', '.csv']:
-        old_f = os.path.join(DATA_DIR, f"current_data{old_ext}")
-        if os.path.exists(old_f):
-            try:
-                os.remove(old_f)
-            except Exception:
-                pass
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in ['.xlsx', '.xls', '.csv']:
+            ext = '.xlsx'
+        
+        os.makedirs(DATA_DIR, exist_ok=True)
+        for old_ext in ['.xlsx', '.xls', '.csv']:
+            old_f = os.path.join(DATA_DIR, f"current_data{old_ext}")
+            if os.path.exists(old_f):
+                try:
+                    os.remove(old_f)
+                except Exception:
+                    pass
 
-    save_path = os.path.join(DATA_DIR, f"current_data{ext}")
-    file.save(save_path)
-    
-    success, msg = drp_service.load_data(save_path)
-    if success:
-        drp_service.save_as_draft(save_path, file.filename)
-        kpis = drp_service.get_kpis()
-        t1 = kpis.get('tier1_count', 0)
-        success_msg = f"Excel uploaded and saved as active draft ('{file.filename}')! Total {len(drp_service.df)} records loaded (Tier 1: {t1})."
-        return redirect(url_for('sync_page', sync_msg=success_msg, sync_ok=1))
-    return redirect(url_for('sync_page', sync_msg=msg, sync_ok=0))
+        save_path = os.path.join(DATA_DIR, f"current_data{ext}")
+        file.save(save_path)
+        
+        success, msg = drp_service.load_data(save_path)
+        if success and drp_service.df is not None:
+            drp_service.save_as_draft(save_path, file.filename)
+            kpis = drp_service.get_kpis()
+            t1 = kpis.get('tier1_count', 0)
+            success_msg = f"Excel uploaded and saved as active draft ('{file.filename}')! Total {len(drp_service.df)} records loaded (Tier 1: {t1})."
+            return redirect(url_for('sync_page', sync_msg=success_msg, sync_ok=1))
+        return redirect(url_for('sync_page', sync_msg=msg, sync_ok=0))
+    except Exception as ex:
+        return redirect(url_for('sync_page', sync_msg=f"Upload error: {str(ex)}", sync_ok=0))
 
 @app.route('/export_csv')
 def export_csv():
