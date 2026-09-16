@@ -372,6 +372,19 @@ def api_test_email_connection():
     if not test_to or '@' not in test_to:
         test_to = 'nikhil.shelke@onixnet.com'
 
+    # Save any new settings passed with test request
+    brevo_key = data.get('brevo_api_key')
+    webhook_url = data.get('webhook_url')
+    user = data.get('user')
+    sender_name = data.get('sender_name')
+    if brevo_key is not None or webhook_url is not None or user is not None:
+        email_service.save_smtp_config(
+            user=user,
+            sender_name=sender_name,
+            webhook_url=webhook_url,
+            brevo_api_key=brevo_key
+        )
+
     test_subject = "Test Delivery from Onix DRP Automation Engine"
     test_html = f"""<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #E2E8F0; border-radius: 8px;">
         <h2 style="color: #30496D;">DRP Portal Email Delivery Verified!</h2>

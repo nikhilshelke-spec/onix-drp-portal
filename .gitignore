@@ -11,4 +11,5 @@ data/draft_metadata.json
 data/campaign_history.json
 data/campaign_jobs.json
 data/otp_store.json
+data/smtp_settings.json
 data/uploaded_*

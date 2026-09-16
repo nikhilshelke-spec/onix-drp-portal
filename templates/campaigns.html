@@ -881,17 +881,33 @@
         const btnText = document.getElementById('testEmailBtnText');
         const fb = document.getElementById('cfgFeedbackBox');
         const senderEmail = document.getElementById('cfgSenderEmail').value.trim() || 'nikhil.shelke@onixnet.com';
+        const senderName = document.getElementById('cfgSenderName').value.trim() || 'Nikhil Shelke';
+        const webhookUrl = document.getElementById('cfgWebhookUrl').value.trim();
+        const brevoKey = document.getElementById('cfgBrevoKey').value.trim();
 
         btn.disabled = true;
         btnText.innerText = 'Dispatching Test Email...';
+        if (fb) fb.classList.add('hidden');
 
         try {
             const res = await fetch('/api/test_email_connection', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ test_email: senderEmail })
+                body: JSON.stringify({
+                    test_email: senderEmail,
+                    user: senderEmail,
+                    sender_name: senderName,
+                    webhook_url: webhookUrl,
+                    brevo_api_key: brevoKey
+                })
             });
-            const data = await res.json();
+            let data = {};
+            try {
+                data = await res.json();
+            } catch (je) {
+                data = { success: false, error: 'Server returned HTTP ' + res.status };
+            }
+
             if (fb) {
                 fb.classList.remove('hidden');
                 if (data.success) {
@@ -904,6 +920,7 @@
             }
         } catch (e) {
             if (fb) {
+                fb.classList.remove('hidden');
                 fb.className = 'p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200';
                 fb.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i> Connection error: ${e}`;
             }
