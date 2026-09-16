@@ -100,7 +100,10 @@ class EmailService:
         if os.path.exists(SMTP_FILE):
             try:
                 with open(SMTP_FILE, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                    cfg = json.load(f)
+                    if 'webhook_url' not in cfg and os.environ.get('GOOGLE_MAIL_WEBHOOK'):
+                        cfg['webhook_url'] = os.environ.get('GOOGLE_MAIL_WEBHOOK')
+                    return cfg
             except Exception:
                 pass
         return {
@@ -108,17 +111,20 @@ class EmailService:
             'port': int(os.environ.get('SMTP_PORT', 587)),
             'user': os.environ.get('SMTP_USER', 'nikhil.shelke@onixnet.com'),
             'password': os.environ.get('SMTP_PASSWORD', ''),
-            'sender_name': 'Nikhil Shelke'
+            'sender_name': 'Nikhil Shelke',
+            'webhook_url': os.environ.get('GOOGLE_MAIL_WEBHOOK', '')
         }
 
-    def save_smtp_config(self, host, port, user, password, sender_name):
-        self.smtp_config = {
-            'host': host.strip() if host else 'smtp.gmail.com',
-            'port': int(port) if port else 587,
-            'user': user.strip() if user else '',
-            'password': password.strip() if password else '',
-            'sender_name': sender_name.strip() if sender_name else 'Nikhil Shelke'
-        }
+    def save_smtp_config(self, host=None, port=None, user=None, password=None, sender_name=None, webhook_url=None):
+        current = self._load_smtp_config()
+        if host is not None: current['host'] = host.strip() if host else 'smtp.gmail.com'
+        if port is not None: current['port'] = int(port) if port else 587
+        if user is not None: current['user'] = user.strip() if user else 'nikhil.shelke@onixnet.com'
+        if password is not None: current['password'] = password.strip() if password else ''
+        if sender_name is not None: current['sender_name'] = sender_name.strip() if sender_name else 'Nikhil Shelke'
+        if webhook_url is not None: current['webhook_url'] = webhook_url.strip()
+
+        self.smtp_config = current
         os.makedirs(DATA_DIR, exist_ok=True)
         with open(SMTP_FILE, "w", encoding="utf-8") as f:
             json.dump(self.smtp_config, f, indent=2)

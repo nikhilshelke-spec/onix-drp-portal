@@ -331,6 +331,61 @@ def api_campaign_job_status(job_id):
         return jsonify({'error': 'Job not found'}), 404
     return jsonify(job)
 
+@app.route('/api/email_settings', methods=['GET', 'POST'])
+def api_email_settings():
+    if session.get('role') not in ['owner', 'editor']:
+        return jsonify({'error': 'Permission denied'}), 403
+    if request.method == 'GET':
+        cfg = email_service._load_smtp_config()
+        # mask password for safety
+        safe_cfg = {
+            'user': cfg.get('user', 'nikhil.shelke@onixnet.com'),
+            'sender_name': cfg.get('sender_name', 'Nikhil Shelke'),
+            'webhook_url': cfg.get('webhook_url', ''),
+            'has_password': bool(cfg.get('password'))
+        }
+        return jsonify(safe_cfg)
+
+    data = request.get_json() or {}
+    webhook_url = data.get('webhook_url', '').strip()
+    user = data.get('user', 'nikhil.shelke@onixnet.com').strip()
+    password = data.get('password', '').strip()
+    sender_name = data.get('sender_name', 'Nikhil Shelke').strip()
+
+    email_service.save_smtp_config(
+        user=user,
+        password=password if password else None,
+        sender_name=sender_name,
+        webhook_url=webhook_url
+    )
+    return jsonify({'success': True, 'message': 'Email configuration updated successfully!'})
+
+@app.route('/api/test_email_connection', methods=['POST'])
+def api_test_email_connection():
+    if session.get('role') not in ['owner', 'editor']:
+        return jsonify({'error': 'Permission denied'}), 403
+    data = request.get_json() or {}
+    test_to = data.get('test_email', 'nikhil.shelke@onixnet.com').strip()
+    if not test_to or '@' not in test_to:
+        test_to = 'nikhil.shelke@onixnet.com'
+
+    test_subject = "Test Delivery from Onix DRP Automation Engine"
+    test_html = f"""<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #E2E8F0; border-radius: 8px;">
+        <h2 style="color: #30496D;">DRP Portal Email Delivery Verified!</h2>
+        <p>This is a test message to confirm your email delivery configuration is working perfectly.</p>
+        <p><strong>Sender:</strong> Nikhil Shelke (nikhil.shelke@onixnet.com)<br>
+        <strong>Recipient:</strong> {test_to}<br>
+        <strong>Time:</strong> {datetime.now().strftime('%d %b %Y, %I:%M %p')}</p>
+        <p style="color: #16A34A; font-weight: bold;">Ready to dispatch bulk campaigns!</p>
+    </div>"""
+    test_text = f"DRP Portal Email Delivery Verified!\nSent to: {test_to} at {datetime.now().strftime('%d %b %Y, %I:%M %p')}"
+
+    ok, msg = email_service.send_email_live(test_to, test_subject, test_html, test_text)
+    if ok:
+        return jsonify({'success': True, 'message': f'Test email dispatched successfully to {test_to}!'})
+    else:
+        return jsonify({'success': False, 'error': msg}), 400
+
 @app.route('/api/resend_failed_emails', methods=['POST'])
 def api_resend_failed_emails():
     if session.get('role') not in ['owner', 'editor']:
