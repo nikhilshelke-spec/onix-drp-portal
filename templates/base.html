@@ -106,6 +106,10 @@
                         <i class="fa-solid fa-chart-line text-slate-600 text-xs"></i>
                         <span>Executive View</span>
                     </div>
+                    <a href="{{ url_for('set_owner') }}" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg border border-slate-200 transition-colors flex items-center space-x-1" title="Switch back to Admin Mode">
+                        <i class="fa-solid fa-user-gear text-blue-600 text-xs"></i>
+                        <span class="hidden sm:inline">Admin Mode</span>
+                    </a>
 
                     {% else %}
                     <div class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-xs font-bold flex items-center space-x-1.5">
