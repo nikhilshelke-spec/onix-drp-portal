@@ -118,6 +118,15 @@ def dashboard():
     product_tables = drp_service.get_product_tables()
     return render_template('dashboard.html', kpis=kpis, charts=charts, product_tables=product_tables, page='dashboard')
 
+@app.route('/priority_dashboard')
+def priority_dashboard():
+    if session.get('role') == 'user':
+        return redirect(url_for('employees'))
+    kpis = drp_service.get_priority_kpis()
+    charts = drp_service.get_priority_chart_data()
+    product_tables = drp_service.get_product_tables()
+    return render_template('priority_dashboard.html', kpis=kpis, charts=charts, product_tables=product_tables, page='priority_dashboard')
+
 # ─── EMPLOYEE HUB & VERIFICATION ─────────────────────────────────────────────
 
 @app.route('/employees')

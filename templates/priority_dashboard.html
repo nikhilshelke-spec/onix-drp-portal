@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Executive Header Banner (Focus 8 Products Theme) -->
+    <div class="rounded-2xl p-6 text-white shadow-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border border-amber-600/40" style="background: linear-gradient(135deg, #30496D 0%, #1e2f47 100%);">
+        <div>
+            <div class="flex items-center space-x-2 mb-1">
+                <span class="px-2.5 py-0.5 bg-amber-500 text-white text-xs font-black rounded-full uppercase tracking-wider flex items-center space-x-1">
+                    <i class="fa-solid fa-star text-[10px]"></i>
+                    <span>Focus 8 Products View</span>
+                </span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Onix Focused 8 Google-priority Products Dashboard</h1>
+            <div class="mt-2 space-y-0.5">
+                <p class="text-sm text-slate-200">Executive overview filtered exclusively for the 8 Google-priority focus areas (BigQuery, Dataflow, Cloud SQL, Looker, Dataproc, AlloyDB, Oracle, Spanner).</p>
+                <p class="text-sm text-slate-100 font-medium">
+                    <span class="font-bold px-2 py-0.5 rounded text-white text-xs mr-1" style="background-color: #f35959;">Goal:</span>
+                    Drive 100% of priority technical staff to Tier 1 Mastery (49+ points).
+                </p>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            {% if current_role == 'owner' %}
+            <button onclick="openLeaderShare()" class="px-3.5 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2 border border-white/20 hover:brightness-110" style="background-color: #30496D;">
+                <i class="fa-solid fa-user-tie text-slate-200"></i>
+                <span>Share Leadership Link</span>
+            </button>
+            {% endif %}
+
+            <a href="{{ url_for('export_csv') }}" class="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl backdrop-blur-sm transition-all flex items-center space-x-2 border border-white/15">
+                <i class="fa-solid fa-download"></i>
+                <span>Export Report</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Executive KPI Grid (Filtered EXCLUSIVELY for 8 Google-priority products) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+
+        <!-- 1. Tier 1 -->
+        <div class="bg-white p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black text-emerald-800 uppercase tracking-tight">Tier 1</h4>
+                        <p class="text-[11px] font-bold text-emerald-600 mt-0.5">(49+ Points)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 text-xs">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black text-emerald-700 leading-none">{{ kpis.tier1_count }}</h3>
+                    <p class="text-[11px] font-bold text-emerald-600 mt-1">{{ kpis.tier1_pct }}% of priority team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-emerald-100 flex justify-between items-center text-[11px]">
+                <span class="text-emerald-700 font-semibold">Requirement</span>
+                <span class="font-black text-emerald-800">49+ Points</span>
+            </div>
+        </div>
+
+        <!-- 2. Tier 2 -->
+        <div class="bg-white p-3.5 rounded-xl border shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between" style="border-color: #30496D; background-color: #F6F9FC;">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black uppercase tracking-tight" style="color: #30496D;">Tier 2</h4>
+                        <p class="text-[11px] font-bold mt-0.5" style="color: #4A6D9C;">(35 – 49 pts)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 text-xs" style="background-color: #30496D;">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black leading-none" style="color: #30496D;">{{ kpis.tier2_count }}</h3>
+                    <p class="text-[11px] font-bold mt-1" style="color: #4A6D9C;">{{ kpis.tier2_pct }}% of priority team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-slate-200 flex justify-between items-center text-[11px]">
+                <span class="text-slate-600 font-semibold">Next Target</span>
+                <span class="font-black" style="color: #30496D;">Tier 1 (49+ pts)</span>
+            </div>
+        </div>
+
+        <!-- 3. Tier 3 -->
+        <div class="bg-white p-3.5 rounded-xl border border-amber-200 bg-amber-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black text-amber-800 uppercase tracking-tight">Tier 3</h4>
+                        <p class="text-[11px] font-bold text-amber-600 mt-0.5">(20 – 34 pts)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 text-xs">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black text-amber-800 leading-none">{{ kpis.tier3_count }}</h3>
+                    <p class="text-[11px] font-bold text-amber-600 mt-1">{{ kpis.tier3_pct }}% of priority team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-amber-100 flex justify-between items-center text-[11px]">
+                <span class="text-amber-700 font-semibold">Next Target</span>
+                <span class="font-black text-amber-800">Tier 2 (35 pts)</span>
+            </div>
+        </div>
+
+        <!-- 4. Tier 4 -->
+        <div class="bg-white p-3.5 rounded-xl border border-purple-200 bg-purple-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black text-purple-800 uppercase tracking-tight">Tier 4</h4>
+                        <p class="text-[11px] font-bold text-purple-600 mt-0.5">(1 – 19 pts)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700 shrink-0 text-xs">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black text-purple-800 leading-none">{{ kpis.tier4_count }}</h3>
+                    <p class="text-[11px] font-bold text-purple-600 mt-1">{{ kpis.tier4_pct }}% of priority team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-purple-100 flex justify-between items-center text-[11px]">
+                <span class="text-purple-700 font-semibold">Next Target</span>
+                <span class="font-black text-purple-800">Tier 3 (20 pts)</span>
+            </div>
+        </div>
+
+        <!-- 5. DRP IDs with 0 Score -->
+        <div class="bg-white p-3.5 rounded-xl border border-rose-200 bg-rose-50/30 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black uppercase tracking-tight" style="color: #f35959;">DRP IDs</h4>
+                        <p class="text-[11px] font-bold mt-0.5 text-rose-500">(0 Score)</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center shrink-0 text-xs" style="color: #f35959;">
+                        <i class="fa-solid fa-gauge-simple"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black leading-none" style="color: #f35959;">{{ kpis.zero_score_count }}</h3>
+                    <p class="text-[11px] font-bold mt-1 text-rose-500">{{ kpis.zero_score_pct }}% of priority team</p>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-rose-100 flex justify-between items-center text-[11px]">
+                <span class="text-rose-600 font-semibold">Next Target</span>
+                <span class="font-black text-rose-700">Tier 4 (1-19 pts)</span>
+            </div>
+        </div>
+
+        <!-- 6. Total Priority Headcount -->
+        <div class="bg-white p-3.5 rounded-xl border-2 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between" style="border-color: #f35959; background-color: #FFF8F8;">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-black text-slate-800 uppercase tracking-tight leading-tight">Priority Eligible Headcount</h4>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 text-xs" style="background-color: #f35959;">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <h3 class="text-2xl font-black text-slate-900 leading-none">{{ kpis.total_headcount }}</h3>
+                    <div class="mt-2 space-y-1 text-[11px]">
+                        <div class="flex items-center space-x-1.5 font-bold text-emerald-700">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span>DRP ID Created: <strong>{{ kpis.drp_created_count }}</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-1.5 font-bold" style="color: #f35959;">
+                            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: #f35959;"></span>
+                            <span>DRP ID Not Created: <strong>{{ kpis.drp_not_created_count }}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Cluster Tier Progression for 8 Priority Products -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-star text-amber-500 text-sm"></i>
+                    <span>Cluster Progression (8 Priority Products)</span>
+                </h3>
+                <p class="text-xs text-slate-500">Tier maturity by major business delivery units in BigQuery, Dataflow, Cloud SQL, Looker, Dataproc, AlloyDB, Oracle, and Spanner</p>
+            </div>
+            <a href="{{ url_for('employees') }}" class="text-xs font-semibold hover:underline" style="color: #30496D;">View Employee Hub &rarr;</a>
+        </div>
+        <div class="h-64 relative">
+            <canvas id="clusterChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Table A: 8 Google-priority products -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-star text-amber-500 text-sm"></i>
+                    <span>Onix Focused 8 Google-priority Products Matrix</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Detailed breakdown for priority Google Cloud focus areas</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-xs text-slate-700 border-collapse">
+                <thead class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
+                    <tr>
+                        <th class="py-2.5 px-3 border-r border-slate-200 font-extrabold">Product</th>
+                        <th class="py-2.5 px-2.5 text-center border-r border-slate-200 text-emerald-800 font-bold w-16">Tier 1</th>
+                        <th class="py-2.5 px-2.5 text-center border-r border-slate-200 text-blue-800 font-bold w-16">Tier 2</th>
+                        <th class="py-2.5 px-2.5 text-center border-r border-slate-200 text-amber-800 font-bold w-16">Tier 3</th>
+                        <th class="py-2.5 px-2.5 text-center border-r border-slate-200 text-purple-800 font-bold w-16">Tier 4</th>
+                        <th class="py-2.5 px-3 text-center font-extrabold text-slate-900 w-20">Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for r in product_tables.table_a.rows %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="py-2 px-3 font-semibold text-slate-900 border-r border-slate-100 whitespace-nowrap">{{ r.product }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-emerald-700">{{ r.t1 if r.t1 > 0 else '' }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-blue-700">{{ r.t2 if r.t2 > 0 else '' }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-amber-700">{{ r.t3 if r.t3 > 0 else '' }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-purple-700">{{ r.t4 if r.t4 > 0 else '' }}</td>
+                        <td class="py-2 px-3 text-center font-extrabold text-slate-900 bg-slate-50/50">{{ r.total if r.total > 0 else '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="bg-slate-100/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
+                        <td class="py-2.5 px-3 border-r border-slate-200">Grand Total</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-emerald-800">{{ product_tables.table_a.grand_total.t1 if product_tables.table_a.grand_total.t1 > 0 else '' }}</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-blue-800">{{ product_tables.table_a.grand_total.t2 if product_tables.table_a.grand_total.t2 > 0 else '' }}</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-amber-800">{{ product_tables.table_a.grand_total.t3 if product_tables.table_a.grand_total.t3 > 0 else '' }}</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-purple-800">{{ product_tables.table_a.grand_total.t4 if product_tables.table_a.grand_total.t4 > 0 else '' }}</td>
+                        <td class="py-2.5 px-3 text-center bg-slate-200/60 text-slate-900 font-extrabold">{{ product_tables.table_a.grand_total.total }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart.js Script for Priority Cluster Progression Chart -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const clusterCtx = document.getElementById('clusterChart');
+    if (!clusterCtx) return;
+
+    const clusterData = {{ charts.cluster_dist | tojson }};
+    const labels = clusterData.map(c => c.cluster);
+    const t1Data = clusterData.map(c => c.t1);
+    const t2Data = clusterData.map(c => c.t2);
+    const t3Data = clusterData.map(c => c.t3);
+    const t4Data = clusterData.map(c => c.t4);
+
+    new Chart(clusterCtx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Tier 1 (49+ pts)', data: t1Data, backgroundColor: '#10B981', borderRadius: 4 },
+                { label: 'Tier 2 (35-49 pts)', data: t2Data, backgroundColor: '#30496D', borderRadius: 4 },
+                { label: 'Tier 3 (20-34 pts)', data: t3Data, backgroundColor: '#F59E0B', borderRadius: 4 },
+                { label: 'Tier 4 (1-19 pts)', data: t4Data, backgroundColor: '#8B5CF6', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } }
+            },
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } },
+                y: { stacked: true, grid: { color: '#F1F5F9' }, ticks: { font: { size: 11 } } }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

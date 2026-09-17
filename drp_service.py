@@ -477,6 +477,134 @@ class DRPService:
             'all_clusters': sorted(list(set(self.df['cluster'].dropna().tolist())))
         }
 
+    def get_priority_df(self):
+        self.ensure_loaded()
+        if self.df is None or len(self.df) == 0:
+            return None
+        priority_names = [
+            'BigQuery', 'Dataflow', 'Cloud SQL', 'Looker',
+            'Dataproc', 'AlloyDB for PostgreSQL', 'Oracle', 'Spanner'
+        ]
+        p_cats = self.df['product'].apply(self.normalize_product_category)
+        return self.df[p_cats.isin(priority_names)].copy()
+
+    def get_priority_kpis(self):
+        pdf = self.get_priority_df()
+        if pdf is None or len(pdf) == 0:
+            return {
+                'total_headcount': 0, 'active_tech_headcount': 0,
+                'tier1_count': 0, 'tier1_pct': 0.0,
+                'tier2_count': 0, 'tier2_pct': 0.0,
+                'tier3_count': 0, 'tier3_pct': 0.0,
+                'tier4_count': 0, 'tier4_pct': 0.0,
+                'zero_score_count': 0, 'zero_score_pct': 0.0,
+                'drp_not_created_count': 0, 'drp_not_created_pct': 0.0,
+                'drp_created_count': 0, 'drp_created_pct': 0.0,
+                'exempted_count': 0, 'avg_score': 0.0
+            }
+        
+        total = len(pdf)
+        counts = pdf['normalized_tier'].value_counts().to_dict()
+        
+        t1 = counts.get('Tier 1', 0)
+        t2 = counts.get('Tier 2', 0)
+        t3 = counts.get('Tier 3', 0)
+        t4 = int(((pdf['normalized_tier'] == 'Tier 4') & (pdf['score'] > 0)).sum())
+        zero_score = int((pdf['score'] == 0).sum())
+        t0 = int(((pdf['drp_status'].str.lower().str.contains('not created')) | (pdf['drp_id'].isin(['None', '', 'nan']))).sum())
+        exempted = counts.get('Exempted', 0) + counts.get('Admin', 0)
+        
+        active_tech = total - exempted
+        t1_pct = round((t1 / max(1, active_tech)) * 100, 1)
+        t2_pct = round((t2 / max(1, active_tech)) * 100, 1)
+        t3_pct = round((t3 / max(1, active_tech)) * 100, 1)
+        t4_pct = round((t4 / max(1, active_tech)) * 100, 1)
+        zero_score_pct = round((zero_score / max(1, active_tech)) * 100, 1)
+        
+        drp_created = total - t0
+        drp_created_pct = round((drp_created / max(1, total)) * 100, 1)
+        drp_not_created_pct = round((t0 / max(1, total)) * 100, 1)
+
+        active_scores = pdf[pdf['normalized_tier'].isin(['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'])]['score']
+        avg_score = round(float(active_scores.mean()), 1) if len(active_scores) > 0 else 0.0
+
+        return {
+            'total_headcount': total,
+            'active_tech_headcount': active_tech,
+            'tier1_count': t1,
+            'tier1_pct': t1_pct,
+            'tier2_count': t2,
+            'tier2_pct': t2_pct,
+            'tier3_count': t3,
+            'tier3_pct': t3_pct,
+            'tier4_count': t4,
+            'tier4_pct': t4_pct,
+            'zero_score_count': zero_score,
+            'zero_score_pct': zero_score_pct,
+            'drp_not_created_count': t0,
+            'drp_not_created_pct': drp_not_created_pct,
+            'drp_created_count': drp_created,
+            'drp_created_pct': drp_created_pct,
+            'exempted_count': exempted,
+            'avg_score': avg_score
+        }
+
+    def get_priority_chart_data(self):
+        pdf = self.get_priority_df()
+        if pdf is None or len(pdf) == 0:
+            return {
+                'cluster_dist': [],
+                'product_items': [],
+                'manager_leaderboard': [],
+                'all_clusters': []
+            }
+
+        clusters = [c for c in pdf['cluster'].value_counts().index.tolist() if c and c != 'General']
+        if not clusters:
+            clusters = pdf['cluster'].value_counts().index.tolist()
+        clusters = clusters[:10]
+
+        cluster_tier_breakdown = []
+        for c in clusters:
+            cdf = pdf[pdf['cluster'] == c]
+            cluster_tier_breakdown.append({
+                'cluster': c,
+                'total': len(cdf),
+                't1': int((cdf['normalized_tier'] == 'Tier 1').sum()),
+                't2': int((cdf['normalized_tier'] == 'Tier 2').sum()),
+                't3': int((cdf['normalized_tier'] == 'Tier 3').sum()),
+                't4': int(((cdf['normalized_tier'] == 'Tier 4') & (cdf['score'] > 0)).sum()),
+                'zero_score': int((cdf['score'] == 0).sum()),
+                't0': int(((cdf['drp_status'].str.lower().str.contains('not created')) | (cdf['drp_id'].isin(['None', '', 'nan']))).sum())
+            })
+
+        prod_counts = pdf[pdf['product'] != 'Not Specified']['product'].value_counts().head(7)
+        product_items = [{'name': k, 'count': int(v)} for k, v in prod_counts.items() if k]
+
+        mgr_data = []
+        for (mgr, clus), group in pdf.groupby(['manager', 'cluster']):
+            if mgr and mgr != 'Unassigned':
+                mgr_data.append({
+                    'manager': mgr,
+                    'cluster': clus,
+                    'total': len(group),
+                    't1': int((group['normalized_tier'] == 'Tier 1').sum()),
+                    't2': int((group['normalized_tier'] == 'Tier 2').sum()),
+                    't3': int((group['normalized_tier'] == 'Tier 3').sum()),
+                    't4': int(((group['normalized_tier'] == 'Tier 4') & (group['score'] > 0)).sum()),
+                    'zero_score': int((group['score'] == 0).sum()),
+                    't0': int(((group['drp_status'].str.lower().str.contains('not created')) | (group['drp_id'].isin(['None', '', 'nan']))).sum())
+                })
+
+        mgr_data = sorted(mgr_data, key=lambda x: (x['t1'], x['t2'], x['total']), reverse=True)
+
+        return {
+            'cluster_dist': cluster_tier_breakdown,
+            'product_items': product_items,
+            'manager_leaderboard': mgr_data,
+            'all_clusters': sorted(list(set(pdf['cluster'].dropna().tolist())))
+        }
+
     def normalize_product_category(self, p_str):
         if not p_str or str(p_str).strip().lower() in ['not specified', 'nan', 'none', '']:
             return 'Not Specified'

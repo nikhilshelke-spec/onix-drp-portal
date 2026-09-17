@@ -48,8 +48,11 @@
                 <!-- Navigation Links -->
                 <nav class="hidden md:flex space-x-1 items-center">
                     {% if current_role in ['owner', 'editor', 'leader'] %}
-                    <a href="{{ url_for('dashboard') }}" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors {% if page == 'dashboard' %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <i class="fa-solid fa-chart-pie mr-1.5"></i> Executive Dashboard
+                    <a href="{{ url_for('dashboard') }}" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors {% if page == 'dashboard' %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <i class="fa-solid fa-chart-pie mr-1.5"></i> All Products Dashboard
+                    </a>
+                    <a href="{{ url_for('priority_dashboard') }}" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors {% if page == 'priority_dashboard' %}bg-amber-50 text-amber-800 font-semibold border border-amber-200{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <i class="fa-solid fa-star text-amber-500 mr-1.5"></i> Focus 8 Products Dashboard
                     </a>
                     {% endif %}
 
