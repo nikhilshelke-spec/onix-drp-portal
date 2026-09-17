@@ -46,11 +46,13 @@ def _save_otp_store(store):
 def setup_role():
     if 'role' not in session:
         session['role'] = 'owner'
+        session['is_owner'] = False
 
 @app.context_processor
 def inject_global_vars():
     role = session.get('role', 'owner')
     verified_email = session.get('verified_email', '')
+    is_owner = session.get('is_owner', False) or (role == 'owner')
     return {
         'google_sheet_url': GOOGLE_SHEET_URL,
         'drp_portal_url': DRP_PORTAL_URL,
@@ -60,6 +62,7 @@ def inject_global_vars():
         'tier_definitions': TIER_DEFINITIONS,
         'current_role': role,
         'is_editor': role in ['owner', 'editor'],
+        'is_owner': is_owner,
         'owner_email': OWNER_EMAIL,
         'verified_email': verified_email,
         'user_email': session.get('user_email', OWNER_EMAIL if role == 'owner' else verified_email),
@@ -106,6 +109,7 @@ def set_role():
 @app.route('/set_owner')
 def set_owner():
     session['role'] = 'owner'
+    session['is_owner'] = True
     session['user_email'] = OWNER_EMAIL
     next_url = request.args.get('next', url_for('dashboard'))
     return redirect(next_url)
@@ -584,9 +588,11 @@ def join_editor(token):
 def join_leader(token):
     leader_email = validate_leader_token(token)
     if leader_email:
+        was_owner = session.get('is_owner', False)
         session['role'] = 'leader'
         session['user_email'] = leader_email
         session['access_type'] = 'leader_link'
+        session['is_owner'] = was_owner
         target = request.args.get('target', '') or request.args.get('next', '')
         if target == 'all' or target == 'dashboard' or target == '/dashboard':
             return redirect(url_for('dashboard'))
