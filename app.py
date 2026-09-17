@@ -114,6 +114,8 @@ def set_owner():
 def dashboard():
     if session.get('role') == 'user':
         return redirect(url_for('employees'))
+    if session.get('role') == 'leader':
+        return redirect(url_for('priority_dashboard'))
     kpis = drp_service.get_kpis()
     charts = drp_service.get_chart_data()
     product_tables = drp_service.get_product_tables()
@@ -585,7 +587,10 @@ def join_leader(token):
         session['role'] = 'leader'
         session['user_email'] = leader_email
         session['access_type'] = 'leader_link'
-        return redirect(url_for('dashboard'))
+        target = request.args.get('target', '') or request.args.get('next', '')
+        if target == 'all' or target == 'dashboard' or target == '/dashboard':
+            return redirect(url_for('dashboard'))
+        return redirect(url_for('priority_dashboard'))
     return render_template('access_denied.html', reason="This leader access link is invalid, expired, or not authorized."), 403
 
 @app.route('/join/employee/<token>')
@@ -630,11 +635,13 @@ def api_get_editors():
 def api_add_leader():
     data = request.get_json() or {}
     email = data.get('email', '').strip().lower()
+    target_page = data.get('page', '')
     if not email or '@' not in email:
         return jsonify({'error': 'Invalid email address'}), 400
     token = add_leader(email)
     base = _get_shareable_base_url()
-    link = f"{base}/join/leader/{token}"
+    query_param = f"?target={target_page}" if target_page else ""
+    link = f"{base}/join/leader/{token}{query_param}"
     return jsonify({'success': True, 'email': email, 'token': token, 'link': link})
 
 @app.route('/api/access/remove_leader', methods=['POST'])
@@ -648,8 +655,10 @@ def api_remove_leader():
 def api_get_leaders():
     leaders = get_all_leaders()
     base = _get_shareable_base_url()
+    target_page = request.args.get('page', '')
+    query_param = f"?target={target_page}" if target_page else ""
     for l in leaders:
-        l['link'] = f"{base}/join/leader/{l['token']}"
+        l['link'] = f"{base}/join/leader/{l['token']}{query_param}"
     return jsonify({'leaders': leaders})
 
 @app.route('/api/access/employee_link')

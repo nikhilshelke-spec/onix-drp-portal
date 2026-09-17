@@ -47,12 +47,16 @@
 
                 <!-- Navigation Links -->
                 <nav class="hidden md:flex space-x-1 items-center">
-                    {% if current_role in ['owner', 'editor', 'leader'] %}
+                    {% if current_role in ['owner', 'editor'] %}
                     <a href="{{ url_for('dashboard') }}" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors {% if page == 'dashboard' %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
                         <i class="fa-solid fa-chart-pie mr-1.5"></i> All Products Dashboard
                     </a>
                     <a href="{{ url_for('priority_dashboard') }}" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors {% if page == 'priority_dashboard' %}bg-amber-50 text-amber-800 font-semibold border border-amber-200{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
                         <i class="fa-solid fa-star text-amber-500 mr-1.5"></i> Focus 8 Products Dashboard
+                    </a>
+                    {% elif current_role == 'leader' %}
+                    <a href="{{ url_for('priority_dashboard') }}" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors {% if page == 'priority_dashboard' %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <i class="fa-solid fa-chart-pie mr-1.5 text-blue-600"></i> Executive Dashboard
                     </a>
                     {% endif %}
 
@@ -146,8 +150,8 @@
 
     {% block scripts %}{% endblock %}
 
-    {% if current_role in ['owner', 'editor'] %}
-    <!-- ── LEADER SHARE MODAL (Owner Only) ────────────────────────── -->
+    {% if current_role in ['owner', 'editor', 'leader'] %}
+    <!-- ── LEADER SHARE MODAL ────────────────────────── -->
     <div id="leaderShareModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 overflow-hidden">
         <div class="flex items-center justify-between p-5 bg-gradient-to-r from-indigo-900 to-slate-900 text-white">
@@ -196,7 +200,9 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
+    {% if current_role in ['owner', 'editor'] %}
     <!-- ── EMPLOYEE SHARE MODAL (Owner Only) ──────────────────────── -->
     <div id="employeeShareModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 overflow-hidden">
@@ -242,14 +248,25 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
-    <!-- ── SHARE MODAL SCRIPTS (Owner Only) ────────────────────────── -->
+    <!-- ── SHARE MODAL SCRIPTS ────────────────────────── -->
     <script>
     function openLeaderShare() {
       const m = document.getElementById('leaderShareModal');
       if (m) {
         m.classList.remove('hidden');
         loadLeaders();
+      } else {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Executive Dashboard link copied to clipboard!\n\n' + window.location.href);
+          }).catch(() => {
+            prompt('Copy Executive Dashboard link:', window.location.href);
+          });
+        } else {
+          prompt('Copy Executive Dashboard link:', window.location.href);
+        }
       }
     }
     function openEmployeeShare() {
@@ -273,7 +290,8 @@
 
     async function loadLeaders() {
       try {
-        const res = await fetch('/api/access/leaders');
+        const currentPage = window.location.pathname.includes('priority_dashboard') ? 'priority_dashboard' : 'dashboard';
+        const res = await fetch(`/api/access/leaders?page=${currentPage}`);
         const data = await res.json();
         const list = document.getElementById('leaderList');
         if (!list) return;
@@ -313,11 +331,12 @@
         alert('Please enter a valid email address.');
         return;
       }
+      const currentPage = window.location.pathname.includes('priority_dashboard') ? 'priority_dashboard' : 'dashboard';
       try {
         const res = await fetch('/api/access/add_leader', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({email})
+          body: JSON.stringify({email, page: currentPage})
         });
         const data = await res.json();
         if (data.success) {
@@ -375,7 +394,6 @@
       });
     }
     </script>
-    {% endif %}
 
 </body>
 </html>
