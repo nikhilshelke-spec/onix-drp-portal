@@ -44,9 +44,13 @@ def _save_otp_store(store):
 
 @app.before_request
 def setup_role():
-    if 'role' not in session:
+    if session.get('access_type') not in ['leader_link', 'employee_link']:
+        if session.get('role') != 'editor':
+            session['role'] = 'owner'
+            session['is_owner'] = True
+    elif 'role' not in session:
         session['role'] = 'owner'
-        session['is_owner'] = False
+        session['is_owner'] = True
 
 @app.context_processor
 def inject_global_vars():
@@ -110,6 +114,7 @@ def set_role():
 def set_owner():
     session['role'] = 'owner'
     session['is_owner'] = True
+    session.pop('access_type', None)
     session['user_email'] = OWNER_EMAIL
     next_url = request.args.get('next', url_for('dashboard'))
     return redirect(next_url)
