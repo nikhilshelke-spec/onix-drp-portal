@@ -15,7 +15,12 @@
                 </p>
             </div>
         </div>
-        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2.5 shrink-0">
+            <div class="text-[11px] font-medium text-slate-200 bg-white/10 px-3 py-2 rounded-xl border border-white/15 backdrop-blur-sm flex items-center space-x-1.5">
+                <i class="fa-solid fa-clock-rotate-left text-amber-300"></i>
+                <span>Data as of: <strong class="text-white font-extrabold">{{ data_as_of }}</strong></span>
+            </div>
+
             {% if current_role == 'owner' %}
             <!-- Share Leadership Link Button -->
             <button onclick="openLeaderShare()" class="px-3.5 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2 border border-white/20 hover:brightness-110" style="background-color: #30496D;">

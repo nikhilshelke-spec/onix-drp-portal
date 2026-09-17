@@ -36,6 +36,19 @@ class DRPService:
                 pass
         return {'is_draft': False, 'exists': False}
 
+    def get_data_as_of(self):
+        self.ensure_loaded()
+        meta = self.get_draft_status()
+        if meta.get('is_draft') and meta.get('uploaded_at'):
+            return meta.get('uploaded_at')
+        if self.current_loaded_path and os.path.exists(self.current_loaded_path):
+            mtime = os.path.getmtime(self.current_loaded_path)
+            import datetime
+            dt = datetime.datetime.fromtimestamp(mtime)
+            return dt.strftime("%d %b %Y, %I:%M %p")
+        import datetime
+        return datetime.datetime.now().strftime("%d %b %Y, %I:%M %p")
+
     def save_as_draft(self, file_path, original_filename):
         os.makedirs(DATA_DIR, exist_ok=True)
         meta = {

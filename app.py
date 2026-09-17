@@ -64,7 +64,8 @@ def inject_global_vars():
         'verified_email': verified_email,
         'user_email': session.get('user_email', OWNER_EMAIL if role == 'owner' else verified_email),
         'last_sync_source': drp_service.last_sync_source,
-        'draft_info': drp_service.get_draft_status()
+        'draft_info': drp_service.get_draft_status(),
+        'data_as_of': drp_service.get_data_as_of()
     }
 
 def _get_shareable_base_url():
