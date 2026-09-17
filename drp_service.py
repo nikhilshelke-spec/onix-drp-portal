@@ -156,8 +156,14 @@ class DRPService:
 
     def ensure_loaded(self):
         target_path = None
-        for ext in ['.xlsx', '.xls', '.csv']:
-            cand = os.path.join(DATA_DIR, f"current_data{ext}")
+        candidates = [
+            os.path.join(DATA_DIR, "current_data.xlsx"),
+            os.path.join(DATA_DIR, "current_data.xls"),
+            os.path.join(DATA_DIR, "current_data.csv"),
+            os.path.join(DATA_DIR, "default_data.xlsx"),
+            LOCAL_EXCEL_PATH
+        ]
+        for cand in candidates:
             if os.path.exists(cand):
                 target_path = cand
                 break
@@ -170,8 +176,14 @@ class DRPService:
     def load_data(self, file_path=None):
         target_path = file_path
         if not target_path or not os.path.exists(target_path):
-            for ext in ['.xlsx', '.xls', '.csv']:
-                cand = os.path.join(DATA_DIR, f"current_data{ext}")
+            candidates = [
+                os.path.join(DATA_DIR, "current_data.xlsx"),
+                os.path.join(DATA_DIR, "current_data.xls"),
+                os.path.join(DATA_DIR, "current_data.csv"),
+                os.path.join(DATA_DIR, "default_data.xlsx"),
+                LOCAL_EXCEL_PATH
+            ]
+            for cand in candidates:
                 if os.path.exists(cand):
                     target_path = cand
                     break
@@ -188,6 +200,8 @@ class DRPService:
                 meta = self.get_draft_status()
                 if meta.get('is_draft'):
                     self.last_sync_source = f"Draft Excel ({meta.get('filename')})"
+                elif 'default_data' in target_path:
+                    self.last_sync_source = "Bundled Standard Excel"
                 return True, f"Successfully loaded {len(self.df)} records"
             except Exception as e:
                 return False, f"Error loading data: {str(e)}"
@@ -334,7 +348,10 @@ class DRPService:
                 'zero_score_count': 0, 'zero_score_pct': 0.0,
                 'drp_not_created_count': 0, 'drp_not_created_pct': 0.0,
                 'drp_created_count': 0, 'drp_created_pct': 0.0,
-                'exempted_count': 0, 'avg_score': 0.0
+                'exempted_count': 0, 'avg_score': 0.0,
+                'priority_t1_count': 0, 'priority_t2_count': 0,
+                'priority_t3_count': 0, 'priority_t4_count': 0,
+                'priority_zero_count': 0, 'priority_total_count': 0
             }
         
         total = len(self.df)
@@ -362,6 +379,21 @@ class DRPService:
         active_scores = self.df[self.df['normalized_tier'].isin(['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'])]['score']
         avg_score = round(float(active_scores.mean()), 1) if len(active_scores) > 0 else 0.0
 
+        # Sub-counts for 8 Google-priority products
+        priority_names = [
+            'BigQuery', 'Dataflow', 'Cloud SQL', 'Looker',
+            'Dataproc', 'AlloyDB for PostgreSQL', 'Oracle', 'Spanner'
+        ]
+        p_cats = self.df['product'].apply(self.normalize_product_category)
+        pdf = self.df[p_cats.isin(priority_names)]
+
+        p_t1 = int((pdf['normalized_tier'] == 'Tier 1').sum())
+        p_t2 = int((pdf['normalized_tier'] == 'Tier 2').sum())
+        p_t3 = int((pdf['normalized_tier'] == 'Tier 3').sum())
+        p_t4 = int(((pdf['normalized_tier'] == 'Tier 4') & (pdf['score'] > 0)).sum())
+        p_zero = int((pdf['score'] == 0).sum())
+        p_total = len(pdf)
+
         return {
             'total_headcount': total,
             'active_tech_headcount': active_tech,
@@ -380,7 +412,13 @@ class DRPService:
             'drp_created_count': drp_created,
             'drp_created_pct': drp_created_pct,
             'exempted_count': exempted,
-            'avg_score': avg_score
+            'avg_score': avg_score,
+            'priority_t1_count': p_t1,
+            'priority_t2_count': p_t2,
+            'priority_t3_count': p_t3,
+            'priority_t4_count': p_t4,
+            'priority_zero_count': p_zero,
+            'priority_total_count': p_total
         }
 
     def get_chart_data(self):

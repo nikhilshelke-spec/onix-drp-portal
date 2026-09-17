@@ -178,6 +178,74 @@
 
     </div>
 
+    <!-- Dedicated Row: DRP profiles with 8 Google-priority products -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 text-sm font-bold">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-base">DRP profiles with 8 Google-priority products</h3>
+                    <p class="text-xs text-slate-500">Tier breakdown specifically for BigQuery, Dataflow, Cloud SQL, Looker, Dataproc, AlloyDB, Oracle, and Spanner</p>
+                </div>
+            </div>
+            <span class="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-extrabold">
+                Priority Headcount: {{ product_tables.table_a.grand_total.total }}
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+            <!-- Priority Tier 1 -->
+            <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-black text-emerald-800 uppercase tracking-tight block">Tier 1</span>
+                    <span class="text-[11px] font-semibold text-emerald-600">(49+ Points)</span>
+                    <div class="text-2xl font-black text-emerald-700 mt-1 leading-none">{{ product_tables.table_a.grand_total.t1 }}</div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 text-base shrink-0 font-black">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+            </div>
+
+            <!-- Priority Tier 2 -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-between" style="border-color: #30496D;">
+                <div>
+                    <span class="text-xs font-black uppercase tracking-tight block" style="color: #30496D;">Tier 2</span>
+                    <span class="text-[11px] font-semibold text-slate-500">(35 – 49 pts)</span>
+                    <div class="text-2xl font-black mt-1 leading-none" style="color: #30496D;">{{ product_tables.table_a.grand_total.t2 }}</div>
+                </div>
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-base shrink-0 font-black" style="background-color: #30496D;">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+            </div>
+
+            <!-- Priority Tier 3 -->
+            <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/30 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-black text-amber-800 uppercase tracking-tight block">Tier 3</span>
+                    <span class="text-[11px] font-semibold text-amber-600">(20 – 34 pts)</span>
+                    <div class="text-2xl font-black text-amber-800 mt-1 leading-none">{{ product_tables.table_a.grand_total.t3 }}</div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 text-base shrink-0 font-black">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+            </div>
+
+            <!-- Priority Tier 4 -->
+            <div class="p-4 rounded-xl border border-purple-200 bg-purple-50/30 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-black text-purple-800 uppercase tracking-tight block">Tier 4</span>
+                    <span class="text-[11px] font-semibold text-purple-600">(1 – 19 pts)</span>
+                    <div class="text-2xl font-black text-purple-800 mt-1 leading-none">{{ product_tables.table_a.grand_total.t4 }}</div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center text-purple-700 text-base shrink-0 font-black">
+                    <i class="fa-solid fa-seedling"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Cluster Tier Progression (Full Width) -->
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex justify-between items-center mb-4">
