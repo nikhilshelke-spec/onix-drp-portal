@@ -39,22 +39,29 @@ class DRPService:
     def get_data_as_of(self):
         self.ensure_loaded()
         meta = self.get_draft_status()
+        raw_val = None
         if meta.get('is_draft') and meta.get('uploaded_at'):
-            return meta.get('uploaded_at')
-        if self.current_loaded_path and os.path.exists(self.current_loaded_path):
+            raw_val = meta.get('uploaded_at')
+        elif self.current_loaded_path and os.path.exists(self.current_loaded_path):
             mtime = os.path.getmtime(self.current_loaded_path)
             import datetime
             dt = datetime.datetime.fromtimestamp(mtime)
-            return dt.strftime("%d %b %Y, %I:%M %p")
+            raw_val = dt.strftime("%d %b %Y")
+        else:
+            import datetime
+            raw_val = datetime.datetime.now().strftime("%d %b %Y")
+
+        if raw_val:
+            return str(raw_val).split(',')[0].strip()
         import datetime
-        return datetime.datetime.now().strftime("%d %b %Y, %I:%M %p")
+        return datetime.datetime.now().strftime("%d %b %Y")
 
     def save_as_draft(self, file_path, original_filename):
         os.makedirs(DATA_DIR, exist_ok=True)
         meta = {
             'is_draft': True,
             'filename': original_filename,
-            'uploaded_at': pd.Timestamp.now().strftime("%d %b %Y, %I:%M %p"),
+            'uploaded_at': pd.Timestamp.now().strftime("%d %b %Y"),
             'records': len(self.df) if self.df is not None else 0
         }
         try:
