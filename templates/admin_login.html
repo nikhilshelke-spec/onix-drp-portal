@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Mode Authentication - Onix DRP Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-8 space-y-6">
+        <div class="text-center space-y-2">
+            <div class="inline-flex p-3 bg-blue-600/10 border border-blue-500/20 rounded-2xl text-blue-400 text-2xl mb-1">
+                <i class="fa-solid fa-user-gear"></i>
+            </div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight">Admin Authentication</h1>
+            <p class="text-xs text-slate-400">Enter Admin password to access management controls</p>
+        </div>
+
+        {% if error %}
+        <div class="bg-red-500/10 border border-red-500/30 text-red-400 rounded-2xl p-4 text-xs flex items-center space-x-2">
+            <i class="fa-solid fa-triangle-exclamation text-base shrink-0"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('admin_login') }}" class="space-y-4">
+            <input type="hidden" name="next" value="{{ next_url }}">
+            
+            <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Admin Password</label>
+                <div class="relative">
+                    <input type="password" id="adminPasswordInput" name="password" required autofocus
+                        placeholder="Enter password"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    <button type="button" onclick="togglePasswordVisibility()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                        <i id="eyeIcon" class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-key"></i>
+                <span>Unlock Admin Mode</span>
+            </button>
+        </form>
+
+        <div class="pt-4 border-t border-slate-800 text-center">
+            <a href="{{ url_for('priority_dashboard') }}" class="text-xs text-slate-400 hover:text-slate-200 transition-colors inline-flex items-center space-x-1">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                <span>Return to Executive View</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            const input = document.getElementById('adminPasswordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>

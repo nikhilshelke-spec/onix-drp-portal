@@ -22,10 +22,12 @@
             </div>
         </div>
         <div class="flex items-center gap-2.5 shrink-0 self-start sm:self-center">
+            {% if is_owner %}
             <button onclick="openLeaderShare()" class="px-3.5 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2 border border-white/20 hover:brightness-110" style="background-color: #30496D;" title="Share Leadership Link">
                 <i class="fa-solid fa-share-nodes text-slate-200"></i>
                 <span>Share Leadership Link</span>
             </button>
+            {% endif %}
 
             <a href="{{ url_for('export_csv') }}" class="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl backdrop-blur-sm transition-all flex items-center space-x-2 border border-white/15">
                 <i class="fa-solid fa-download"></i>

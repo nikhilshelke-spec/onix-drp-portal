@@ -42,21 +42,34 @@ def _save_otp_store(store):
     except Exception:
         pass
 
+ADMIN_PASSWORD = "Onix@001"
+
 @app.before_request
 def setup_role():
-    if session.get('access_type') not in ['leader_link', 'employee_link']:
+    access_type = session.get('access_type')
+    if access_type == 'leader_link':
+        session['role'] = 'leader'
+        session['is_owner'] = False
+        session['admin_authenticated'] = False
+    elif access_type == 'employee_link':
         if session.get('role') != 'editor':
-            session['role'] = 'owner'
+            session['role'] = 'user'
+        session['is_owner'] = False
+    else:
+        if session.get('admin_authenticated') == True:
             session['is_owner'] = True
-    elif 'role' not in session:
-        session['role'] = 'owner'
-        session['is_owner'] = True
+            if session.get('role') not in ['owner', 'editor']:
+                session['role'] = 'owner'
+        else:
+            session['is_owner'] = False
+            if session.get('role') == 'owner' or 'role' not in session:
+                session['role'] = 'leader'
 
 @app.context_processor
 def inject_global_vars():
-    role = session.get('role', 'owner')
+    role = session.get('role', 'leader')
     verified_email = session.get('verified_email', '')
-    is_owner = session.get('is_owner', False) or (role == 'owner')
+    is_owner = session.get('is_owner', False) and session.get('admin_authenticated', False)
     return {
         'google_sheet_url': GOOGLE_SHEET_URL,
         'drp_portal_url': DRP_PORTAL_URL,
@@ -65,11 +78,11 @@ def inject_global_vars():
         'drp_attribution_url': DRP_ATTRIBUTION_URL,
         'tier_definitions': TIER_DEFINITIONS,
         'current_role': role,
-        'is_editor': role in ['owner', 'editor'],
+        'is_editor': (role == 'owner' and is_owner) or (role == 'editor'),
         'is_owner': is_owner,
         'owner_email': OWNER_EMAIL,
         'verified_email': verified_email,
-        'user_email': session.get('user_email', OWNER_EMAIL if role == 'owner' else verified_email),
+        'user_email': session.get('user_email', OWNER_EMAIL if is_owner else verified_email),
         'last_sync_source': drp_service.last_sync_source,
         'draft_info': drp_service.get_draft_status(),
         'data_as_of': drp_service.get_data_as_of()
@@ -100,11 +113,44 @@ def _get_shareable_base_url():
         return f"http://{local_ip}:{port}"
     return request.host_url.rstrip('/')
 
+@app.route('/admin_login', methods=['GET', 'POST'])
+def admin_login():
+    next_url = request.args.get('next', '') or request.form.get('next', '') or url_for('dashboard')
+    if request.method == 'GET':
+        if session.get('admin_authenticated'):
+            return redirect(next_url)
+        return render_template('admin_login.html', next_url=next_url)
+    
+    password = request.form.get('password', '').strip()
+    if password == ADMIN_PASSWORD:
+        session['admin_authenticated'] = True
+        session['role'] = 'owner'
+        session['is_owner'] = True
+        session['user_email'] = OWNER_EMAIL
+        session.pop('access_type', None)
+        return redirect(next_url)
+    else:
+        return render_template('admin_login.html', error='Invalid Admin Password. Access Denied.', next_url=next_url)
+
+@app.route('/admin_logout')
+def admin_logout():
+    session['admin_authenticated'] = False
+    session['is_owner'] = False
+    session['role'] = 'leader'
+    session.pop('access_type', None)
+    return redirect(url_for('priority_dashboard'))
+
 @app.route('/set_role')
 def set_role():
-    role = request.args.get('role', 'owner')
-    if role in ['owner', 'editor', 'leader', 'user']:
+    role = request.args.get('role', 'leader')
+    if role in ['owner', 'editor']:
+        if not session.get('admin_authenticated'):
+            return redirect(url_for('admin_login', next=request.url))
         session['role'] = role
+    elif role in ['leader', 'user']:
+        session['role'] = role
+        if role == 'leader':
+            session['is_owner'] = False
     next_url = request.args.get('next', url_for('dashboard'))
     if session['role'] == 'user' and (next_url == '/' or 'campaigns' in next_url or 'sync' in next_url):
         next_url = url_for('employees')
@@ -112,6 +158,8 @@ def set_role():
 
 @app.route('/set_owner')
 def set_owner():
+    if not session.get('admin_authenticated'):
+        return redirect(url_for('admin_login', next=url_for('dashboard')))
     session['role'] = 'owner'
     session['is_owner'] = True
     session.pop('access_type', None)
@@ -593,11 +641,11 @@ def join_editor(token):
 def join_leader(token):
     leader_email = validate_leader_token(token)
     if leader_email:
-        was_owner = session.get('is_owner', False)
         session['role'] = 'leader'
         session['user_email'] = leader_email
         session['access_type'] = 'leader_link'
-        session['is_owner'] = was_owner
+        session['is_owner'] = False
+        session['admin_authenticated'] = False
         target = request.args.get('target', '') or request.args.get('next', '')
         if target == 'all' or target == 'dashboard' or target == '/dashboard':
             return redirect(url_for('dashboard'))
