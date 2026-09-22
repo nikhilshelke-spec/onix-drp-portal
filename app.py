@@ -3,9 +3,6 @@ import json
 import time
 import uuid
 import secrets
-import shutil
-import subprocess
-import threading
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file, Response, session, flash
 import pandas as pd
 from config import GOOGLE_SHEET_URL, DRP_PORTAL_URL, CREDLY_URL, DRP_MAPPING_SHEET_URL, DRP_ATTRIBUTION_URL, TIER_DEFINITIONS
@@ -570,114 +567,26 @@ def api_refresh_data():
     except Exception as ex:
         return redirect(url_for('sync_page', sync_msg=f"Refresh error: {str(ex)}", sync_ok=0))
 
-def _trigger_cloud_sync(filename, records_count):
-    """
-    Persists uploaded dataset to GitHub so Render Cloud automatically redeploys
-    and retains data across restarts/sleeps.
-    1. If running locally with git CLI: uses git commit + git push.
-    2. If running on Render with GITHUB_TOKEN: uses GitHub REST API.
-    """
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    git_dir = os.path.join(base_dir, ".git")
-
-    # Method 1: Local Git CLI
-    if os.path.exists(git_dir):
-        try:
-            subprocess.run(["git", "add", "data/default_data.xlsx", "data/draft_metadata.json"], cwd=base_dir, check=True, capture_output=True)
-            commit_msg = f"Auto-sync DRP dataset: {filename} ({records_count} records)"
-            subprocess.run(["git", "commit", "-m", commit_msg], cwd=base_dir, check=True, capture_output=True)
-            subprocess.run(["git", "push", "origin", "main"], cwd=base_dir, check=True, capture_output=True)
-            print(f"[Auto-Git-Sync] Pushed {filename} to GitHub main successfully.")
-            return True, "Synced to GitHub main via Git CLI."
-        except subprocess.CalledProcessError as cpe:
-            err = cpe.stderr.decode('utf-8', errors='ignore') if cpe.stderr else str(cpe)
-            print(f"[Auto-Git-Sync Warning] Git CLI output: {err}")
-            if "nothing to commit" in err:
-                return True, "Already up to date on GitHub."
-        except Exception as ex:
-            print(f"[Auto-Git-Sync Error] Git CLI failed: {ex}")
-
-    # Method 2: GitHub REST API (Works on Render container if GITHUB_TOKEN is set)
-    gh_token = os.environ.get("GITHUB_TOKEN")
-    repo = os.environ.get("GITHUB_REPO", "nikhilshelke-spec/onix-drp-portal")
-    if gh_token:
-        try:
-            import base64
-            import urllib.request
-
-            headers = {
-                "Authorization": f"Bearer {gh_token}",
-                "Accept": "application/vnd.github.v3+json",
-                "User-Agent": "Onix-DRP-Portal-Sync"
-            }
-
-            def _push_gh_file(rel_path, content_bytes, commit_message):
-                api_url = f"https://api.github.com/repos/{repo}/contents/{rel_path}"
-                sha = None
-                try:
-                    req_get = urllib.request.Request(api_url, headers=headers)
-                    with urllib.request.urlopen(req_get, timeout=10) as resp:
-                        existing = json.loads(resp.read().decode())
-                        sha = existing.get("sha")
-                except Exception:
-                    pass
-
-                payload = {
-                    "message": commit_message,
-                    "content": base64.b64encode(content_bytes).decode("utf-8")
-                }
-                if sha:
-                    payload["sha"] = sha
-
-                req_put = urllib.request.Request(
-                    api_url,
-                    data=json.dumps(payload).encode("utf-8"),
-                    headers={**headers, "Content-Type": "application/json"},
-                    method="PUT"
-                )
-                with urllib.request.urlopen(req_put, timeout=15) as resp:
-                    return resp.status in [200, 201]
-
-            default_path = os.path.join(DATA_DIR, "default_data.xlsx")
-            if os.path.exists(default_path):
-                with open(default_path, "rb") as f:
-                    _push_gh_file("data/default_data.xlsx", f.read(), f"Cloud sync DRP dataset: {filename}")
-
-            meta_path = os.path.join(DATA_DIR, "draft_metadata.json")
-            if os.path.exists(meta_path):
-                with open(meta_path, "rb") as f:
-                    _push_gh_file("data/draft_metadata.json", f.read(), f"Update draft metadata for {filename}")
-
-            print(f"[Auto-Git-Sync] Pushed to GitHub REST API successfully.")
-            return True, "Synced to GitHub via REST API."
-        except Exception as ex:
-            print(f"[Auto-Git-Sync Error] GitHub REST API failed: {ex}")
-
-    return False, "No Git CLI or GITHUB_TOKEN available for cloud push."
-
-
-@app.route('/api/sync_to_github', methods=['POST'])
-def api_sync_to_github():
-    if session.get('role') not in ['owner', 'editor']:
-        return redirect(url_for('employees'))
-    
-    draft = drp_service.get_draft_status()
-    filename = draft.get('filename', 'Active_Dataset.xlsx')
-    records = len(drp_service.df) if drp_service.df is not None else 0
-
-    # Ensure default_data.xlsx matches current data
-    cand = os.path.join(DATA_DIR, "current_data.xlsx")
-    if os.path.exists(cand):
-        shutil.copy2(cand, os.path.join(DATA_DIR, "default_data.xlsx"))
-
-    ok, msg = _trigger_cloud_sync(filename, records)
-    if ok:
-        flash_msg = f"🚀 यश! नवीन डेटा ({records} records) GitHub आणि Render वर यशस्वीरीत्या सिंक झाला आहे. पुढील १ ते २ मिनिटांत Render वर नवीन डेटा लाइव्ह होईल!"
-        return redirect(url_for('sync_page', sync_msg=flash_msg, sync_ok=1))
-    else:
-        flash_msg = f"⚠️ Cloud Sync इशारा: {msg}. जर तुम्ही Render वर असाल, तर खात्री करा की लोकलवरून डेटा पुश झाला आहे किंवा Render मध्ये GITHUB_TOKEN ॲड केला आहे."
-        return redirect(url_for('sync_page', sync_msg=flash_msg, sync_ok=0))
-
+def _sync_to_github_cloud(filename=None):
+    try:
+        import subprocess
+        cwd = os.path.dirname(os.path.abspath(__file__))
+        current_path = os.path.join(cwd, "data", "current_data.xlsx")
+        default_path = os.path.join(cwd, "data", "default_data.xlsx")
+        if os.path.exists(current_path):
+            import shutil
+            shutil.copyfile(current_path, default_path)
+            
+        rec_count = len(drp_service.df) if drp_service.df is not None else 0
+        commit_msg = f"Auto-sync DRP dataset: {filename or 'Active dataset'} ({rec_count} records)"
+        subprocess.run(["git", "add", "data/default_data.xlsx", "data/draft_metadata.json"], cwd=cwd, check=False)
+        subprocess.run(["git", "commit", "-m", commit_msg], cwd=cwd, check=False)
+        res = subprocess.run(["git", "push", "origin", "main"], cwd=cwd, capture_output=True, text=True)
+        if res.returncode == 0:
+            return True, "Successfully synced dataset and deployed to Render Cloud (GitHub main)!"
+        return False, f"Git push status: {res.stderr.strip() or res.stdout.strip()}"
+    except Exception as ex:
+        return False, f"Sync error: {str(ex)}"
 
 @app.route('/api/upload_excel', methods=['POST'])
 def api_upload_excel():
@@ -706,29 +615,39 @@ def api_upload_excel():
 
         save_path = os.path.join(DATA_DIR, f"current_data{ext}")
         file.save(save_path)
+
+        # Also copy directly over default_data.xlsx
+        default_path = os.path.join(DATA_DIR, "default_data.xlsx")
+        try:
+            import shutil
+            shutil.copyfile(save_path, default_path)
+        except Exception:
+            pass
         
         success, msg = drp_service.load_data(save_path)
         if success and drp_service.df is not None:
-            # Overwrite default_data.xlsx so fallback is permanently updated
-            default_path = os.path.join(DATA_DIR, "default_data.xlsx")
-            if ext == '.xlsx':
-                shutil.copy2(save_path, default_path)
-            else:
-                drp_service.df.to_excel(default_path, index=False)
-
             drp_service.save_as_draft(save_path, file.filename)
-            records_count = len(drp_service.df)
-
-            # Auto-sync to GitHub in background
-            threading.Thread(target=_trigger_cloud_sync, args=(file.filename, records_count), daemon=True).start()
-
             kpis = drp_service.get_kpis()
             t1 = kpis.get('tier1_count', 0)
-            success_msg = f"Excel uploaded successfully ('{file.filename}')! Total {records_count} records active (Tier 1: {t1}). Cloud sync to GitHub & Render initiated."
+
+            # Auto sync to Render Cloud via Git Push
+            cloud_ok, cloud_msg = _sync_to_github_cloud(file.filename)
+            if cloud_ok:
+                success_msg = f"✅ Excel uploaded ('{file.filename}') & AUTO-PUSHED TO RENDER CLOUD! Total {len(drp_service.df)} records loaded (Tier 1: {t1}). Executives will see this updated dataset on Render!"
+            else:
+                success_msg = f"Excel uploaded & active ('{file.filename}')! Total {len(drp_service.df)} records loaded (Tier 1: {t1}). ({cloud_msg})"
+
             return redirect(url_for('sync_page', sync_msg=success_msg, sync_ok=1))
         return redirect(url_for('sync_page', sync_msg=msg, sync_ok=0))
     except Exception as ex:
         return redirect(url_for('sync_page', sync_msg=f"Upload error: {str(ex)}", sync_ok=0))
+
+@app.route('/api/sync_to_cloud', methods=['POST'])
+def api_sync_to_cloud():
+    if session.get('role') not in ['owner', 'editor']:
+        return redirect(url_for('employees'))
+    ok, msg = _sync_to_github_cloud()
+    return redirect(url_for('sync_page', sync_msg=msg, sync_ok=1 if ok else 0))
 
 @app.route('/export_csv')
 def export_csv():

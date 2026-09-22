@@ -69,6 +69,16 @@ class DRPService:
                 json.dump(meta, f, indent=2)
         except Exception:
             pass
+
+        # Always sync uploaded file over default_data.xlsx as well
+        default_path = os.path.join(DATA_DIR, "default_data.xlsx")
+        try:
+            if file_path != default_path and os.path.exists(file_path):
+                import shutil
+                shutil.copyfile(file_path, default_path)
+        except Exception:
+            pass
+
         self.last_sync_source = f"Draft Excel ({original_filename})"
 
     def delete_data(self):
@@ -95,119 +105,48 @@ class DRPService:
         self.last_sync_source = "None"
         return True
 
-    def get_configured_sheet_url(self):
-        os.makedirs(DATA_DIR, exist_ok=True)
-        if os.path.exists(SHEET_CONFIG_FILE):
-            try:
-                with open(SHEET_CONFIG_FILE, 'r', encoding='utf-8') as f:
-                    cfg = json.load(f)
-                    url = cfg.get('google_sheet_url', '').strip()
-                    if url:
-                        return url
-            except Exception:
-                pass
-        return GOOGLE_SHEET_URL
-
-    def save_configured_sheet_url(self, url):
-        os.makedirs(DATA_DIR, exist_ok=True)
-        try:
-            with open(SHEET_CONFIG_FILE, 'w', encoding='utf-8') as f:
-                json.dump({'google_sheet_url': url.strip()}, f, indent=2)
-            return True
-        except Exception:
-            return False
-
-    def _get_csv_download_url(self, sheet_url):
-        sheet_url = (sheet_url or '').strip()
-        if not sheet_url:
-            return None
-
-        # Already a direct CSV export or published CSV
-        if 'output=csv' in sheet_url or 'format=csv' in sheet_url:
-            return sheet_url
-
-        # Published web page -> convert to csv
-        if '/pubhtml' in sheet_url:
-            return sheet_url.replace('/pubhtml', '/pub?output=csv')
-
-        # Standard Google Sheet URL (https://docs.google.com/spreadsheets/d/<ID>/edit...)
-        match_id = re.search(r'/spreadsheets/d/([a-zA-Z0-9-_]+)', sheet_url)
-        if match_id:
-            sheet_id = match_id.group(1)
-            match_gid = re.search(r'[#&?]gid=(\d+)', sheet_url)
-            gid = match_gid.group(1) if match_gid else '0'
-            return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
-
-        return sheet_url
-
-    def sync_from_google_sheet(self, custom_url=None):
-        target_url = (custom_url or self.get_configured_sheet_url()).strip()
-        csv_export_url = self._get_csv_download_url(target_url)
-
-        if not csv_export_url:
-            return False, "Invalid Google Sheet URL provided."
-
-        try:
-            req = urllib.request.Request(
-                csv_export_url,
-                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-            )
-            with urllib.request.urlopen(req, timeout=12) as resp:
-                csv_bytes = resp.read()
-                df = pd.read_csv(io.BytesIO(csv_bytes))
-                if len(df) == 0:
-                    return False, "Google Sheet appears to be empty."
-                self.df = self._clean_and_normalize(df)
-                os.makedirs(os.path.dirname(LOCAL_EXCEL_PATH), exist_ok=True)
-                self.df.to_excel(LOCAL_EXCEL_PATH, index=False)
-                self.last_sync_source = "Live Google Sheet"
-                if custom_url:
-                    self.save_configured_sheet_url(custom_url)
-                return True, f"Successfully synced live {len(self.df)} records from Google Sheet!"
-        except Exception as e:
-            err_msg = str(e)
-            if '401' in err_msg or 'Unauthorized' in err_msg or '403' in err_msg:
-                err_msg = (
-                    "Google Sheet permission is Restricted. "
-                    "Option A: Click 'Share' in Google Sheet (top right) and set General access to 'Anyone with the link can view'. "
-                    "Option B (Works inside Onix): In Google Sheet click File > Share > 'Publish to web' > select CSV format, and paste that link here!"
-                )
-            return False, f"{err_msg}"
-
-    def ensure_loaded(self):
-        target_path = None
-        candidates = [
+    def _find_best_candidate(self):
+        default_path = os.path.join(DATA_DIR, "default_data.xlsx")
+        current_cands = [
             os.path.join(DATA_DIR, "current_data.xlsx"),
             os.path.join(DATA_DIR, "current_data.xls"),
             os.path.join(DATA_DIR, "current_data.csv"),
-            os.path.join(DATA_DIR, "default_data.xlsx"),
-            LOCAL_EXCEL_PATH
         ]
-        for cand in candidates:
+        
+        found_current = None
+        for cand in current_cands:
             if os.path.exists(cand):
-                target_path = cand
+                found_current = cand
                 break
+                
+        if found_current and os.path.exists(default_path):
+            mtime_current = os.path.getmtime(found_current)
+            mtime_default = os.path.getmtime(default_path)
+            # If default_data.xlsx is newer (e.g. pulled from git update), prefer default_data.xlsx
+            if mtime_default > mtime_current:
+                try:
+                    os.remove(found_current)
+                except Exception:
+                    pass
+                return default_path
+            return found_current
+        elif found_current:
+            return found_current
+        elif os.path.exists(default_path):
+            return default_path
+        elif os.path.exists(LOCAL_EXCEL_PATH):
+            return LOCAL_EXCEL_PATH
+        return None
 
+    def ensure_loaded(self):
+        target_path = self._find_best_candidate()
         if target_path and os.path.exists(target_path):
             current_mtime = os.path.getmtime(target_path)
             if self.df is None or current_mtime > self.file_mtime or self.current_loaded_path != target_path:
                 self.load_data(target_path)
 
     def load_data(self, file_path=None):
-        target_path = file_path
-        if not target_path or not os.path.exists(target_path):
-            candidates = [
-                os.path.join(DATA_DIR, "current_data.xlsx"),
-                os.path.join(DATA_DIR, "current_data.xls"),
-                os.path.join(DATA_DIR, "current_data.csv"),
-                os.path.join(DATA_DIR, "default_data.xlsx"),
-                LOCAL_EXCEL_PATH
-            ]
-            for cand in candidates:
-                if os.path.exists(cand):
-                    target_path = cand
-                    break
-
+        target_path = file_path or self._find_best_candidate()
         if target_path and os.path.exists(target_path):
             try:
                 if target_path.endswith('.csv'):
