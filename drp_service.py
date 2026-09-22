@@ -26,12 +26,10 @@ class DRPService:
                 with open(DRAFT_METADATA_FILE, 'r', encoding='utf-8') as f:
                     meta = json.load(f)
                     if meta.get('is_draft'):
-                        # Check if draft excel actually exists
-                        for ext in ['.xlsx', '.xls', '.csv']:
-                            cand = os.path.join(DATA_DIR, f"current_data{ext}")
-                            if os.path.exists(cand):
-                                meta['exists'] = True
-                                return meta
+                        default_path = os.path.join(DATA_DIR, "default_data.xlsx")
+                        if os.path.exists(default_path) or any(os.path.exists(os.path.join(DATA_DIR, f"current_data{ext}")) for ext in ['.xlsx', '.xls', '.csv']):
+                            meta['exists'] = True
+                            return meta
             except Exception:
                 pass
         return {'is_draft': False, 'exists': False}
@@ -107,35 +105,25 @@ class DRPService:
 
     def _find_best_candidate(self):
         default_path = os.path.join(DATA_DIR, "default_data.xlsx")
+        if os.path.exists(default_path):
+            for ext in ['.xlsx', '.xls', '.csv']:
+                legacy_file = os.path.join(DATA_DIR, f"current_data{ext}")
+                if os.path.exists(legacy_file):
+                    try:
+                        os.remove(legacy_file)
+                    except Exception:
+                        pass
+            return default_path
+
         current_cands = [
             os.path.join(DATA_DIR, "current_data.xlsx"),
             os.path.join(DATA_DIR, "current_data.xls"),
             os.path.join(DATA_DIR, "current_data.csv"),
+            LOCAL_EXCEL_PATH
         ]
-        
-        found_current = None
         for cand in current_cands:
             if os.path.exists(cand):
-                found_current = cand
-                break
-                
-        if found_current and os.path.exists(default_path):
-            mtime_current = os.path.getmtime(found_current)
-            mtime_default = os.path.getmtime(default_path)
-            # If default_data.xlsx is newer (e.g. pulled from git update), prefer default_data.xlsx
-            if mtime_default > mtime_current:
-                try:
-                    os.remove(found_current)
-                except Exception:
-                    pass
-                return default_path
-            return found_current
-        elif found_current:
-            return found_current
-        elif os.path.exists(default_path):
-            return default_path
-        elif os.path.exists(LOCAL_EXCEL_PATH):
-            return LOCAL_EXCEL_PATH
+                return cand
         return None
 
     def ensure_loaded(self):
