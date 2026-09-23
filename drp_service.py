@@ -86,24 +86,17 @@ class DRPService:
         self.df = None
         self.file_mtime = 0
         self.current_loaded_path = None
-        for ext in ['.xlsx', '.xls', '.csv']:
-            fpath = os.path.join(DATA_DIR, f"current_data{ext}")
-            if os.path.exists(fpath):
-                try:
-                    os.remove(fpath)
-                except Exception:
-                    pass
-        if os.path.exists(LOCAL_EXCEL_PATH):
-            try:
-                os.remove(LOCAL_EXCEL_PATH)
-            except Exception:
-                pass
-        if os.path.exists(DRAFT_METADATA_FILE):
-            try:
-                os.remove(DRAFT_METADATA_FILE)
-            except Exception:
-                pass
         self.last_sync_source = "None"
+        
+        # Delete default_data.xlsx and all active excel/csv/metadata files
+        if os.path.exists(DATA_DIR):
+            for fname in os.listdir(DATA_DIR):
+                fpath = os.path.join(DATA_DIR, fname)
+                if os.path.isfile(fpath) and fname not in ['access_control.json', 'email_templates.json', 'smtp_settings.json', 'campaign_history.json', 'campaign_jobs.json', 'otp_store.json']:
+                    try:
+                        os.remove(fpath)
+                    except Exception:
+                        pass
         return True
 
     def _find_best_candidate(self):
@@ -132,9 +125,16 @@ class DRPService:
     def ensure_loaded(self):
         target_path = self._find_best_candidate()
         if target_path and os.path.exists(target_path):
-            current_mtime = os.path.getmtime(target_path)
-            if self.df is None or current_mtime > self.file_mtime or self.current_loaded_path != target_path:
+            try:
+                current_mtime = os.path.getmtime(target_path)
+            except Exception:
+                current_mtime = 0
+            if self.df is None or current_mtime != self.file_mtime or self.current_loaded_path != target_path:
                 self.load_data(target_path)
+        else:
+            self.df = None
+            self.file_mtime = 0
+            self.current_loaded_path = None
 
     def load_data(self, file_path=None):
         target_path = file_path or self._find_best_candidate()
