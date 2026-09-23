@@ -35,22 +35,25 @@ class DRPService:
         return {'is_draft': False, 'exists': False}
 
     def get_data_as_of(self):
-        self.ensure_loaded()
-        meta = self.get_draft_status()
-        raw_val = None
-        if meta.get('is_draft') and meta.get('uploaded_at'):
-            raw_val = meta.get('uploaded_at')
-        elif self.current_loaded_path and os.path.exists(self.current_loaded_path):
-            mtime = os.path.getmtime(self.current_loaded_path)
-            import datetime
-            dt = datetime.datetime.fromtimestamp(mtime)
-            raw_val = dt.strftime("%d %b %Y")
-        else:
-            import datetime
-            raw_val = datetime.datetime.now().strftime("%d %b %Y")
+        try:
+            self.ensure_loaded()
+            meta = self.get_draft_status()
+            raw_val = None
+            if meta.get('is_draft') and meta.get('uploaded_at'):
+                raw_val = meta.get('uploaded_at')
+            elif self.current_loaded_path and os.path.exists(self.current_loaded_path):
+                try:
+                    mtime = os.path.getmtime(self.current_loaded_path)
+                    import datetime
+                    dt = datetime.datetime.fromtimestamp(mtime)
+                    raw_val = dt.strftime("%d %b %Y")
+                except Exception:
+                    pass
 
-        if raw_val:
-            return str(raw_val).split(',')[0].strip()
+            if raw_val:
+                return str(raw_val).split(',')[0].strip()
+        except Exception:
+            pass
         import datetime
         return datetime.datetime.now().strftime("%d %b %Y")
 

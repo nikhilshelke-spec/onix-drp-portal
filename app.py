@@ -502,10 +502,13 @@ def sync_page():
     if session.get('role') not in ['owner', 'editor']:
         return redirect(url_for('employees'))
     try:
-        kpis = drp_service.get_kpis()
+        drp_service.ensure_loaded()
+        kpis = drp_service.get_kpis() or {}
         has_data = drp_service.df is not None and len(drp_service.df) > 0
-        return render_template('settings_sync.html', kpis=kpis, has_data=has_data, last_source=drp_service.last_sync_source, page='sync')
-    except Exception:
+        sync_msg = request.args.get('sync_msg', '')
+        sync_ok = request.args.get('sync_ok', '1') == '1'
+        return render_template('settings_sync.html', kpis=kpis, has_data=has_data, last_source=drp_service.last_sync_source, sync_msg=sync_msg, sync_ok=sync_ok, page='sync')
+    except Exception as ex:
         empty_kpis = {
             'total_headcount': 0, 'active_tech_headcount': 0,
             'tier1_count': 0, 'tier1_pct': 0.0,
@@ -517,7 +520,10 @@ def sync_page():
             'drp_created_count': 0, 'drp_created_pct': 0.0,
             'exempted_count': 0, 'avg_score': 0.0
         }
-        return render_template('settings_sync.html', kpis=empty_kpis, has_data=False, last_source="None", page='sync')
+        try:
+            return render_template('settings_sync.html', kpis=empty_kpis, has_data=False, last_source="None", sync_msg=f"Notice: {str(ex)}", sync_ok=False, page='sync')
+        except Exception:
+            return redirect(url_for('employees'))
 
 @app.route('/api/delete_data', methods=['POST'])
 def api_delete_data():
