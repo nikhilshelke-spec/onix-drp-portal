@@ -782,6 +782,15 @@ def api_employee_link():
     link = f"{base}/join/employee/{token}"
     return jsonify({'link': link, 'token': token})
 
+@app.route('/api/version')
+def api_version():
+    return jsonify({
+        'version': 'v2.5',
+        'commit': '29de430',
+        'priority_kpis': drp_service.get_priority_kpis(),
+        'overall_kpis': drp_service.get_kpis()
+    })
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 4000))
     print(f"Starting Delivery Readiness Portal Executive Dashboard on 0.0.0.0:{port} ...")
