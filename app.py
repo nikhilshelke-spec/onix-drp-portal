@@ -86,7 +86,7 @@ def inject_global_vars():
         'last_sync_source': drp_service.last_sync_source,
         'draft_info': drp_service.get_draft_status(),
         'data_as_of': drp_service.get_data_as_of(),
-        'app_version': 'v2.1-sep22'
+        'app_version': 'v2.5-sep24-162'
     }
 
 def _get_shareable_base_url():
