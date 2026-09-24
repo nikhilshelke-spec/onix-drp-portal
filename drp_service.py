@@ -122,7 +122,45 @@ class DRPService:
                 return cand
         return None
 
+    def sync_from_github_raw(self):
+        try:
+            raw_meta_url = "https://raw.githubusercontent.com/nikhilshelke-spec/onix-drp-portal/main/data/draft_metadata.json"
+            raw_excel_url = "https://raw.githubusercontent.com/nikhilshelke-spec/onix-drp-portal/main/data/default_data.xlsx"
+            
+            req = urllib.request.Request(raw_meta_url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                remote_meta = json.loads(resp.read().decode('utf-8'))
+                
+            local_meta = self.get_draft_status()
+            
+            need_download = False
+            if not local_meta.get('is_draft') and remote_meta.get('is_draft'):
+                need_download = True
+            elif remote_meta.get('is_draft') and (
+                remote_meta.get('uploaded_at') != local_meta.get('uploaded_at') or
+                remote_meta.get('records') != local_meta.get('records') or
+                remote_meta.get('filename') != local_meta.get('filename')
+            ):
+                need_download = True
+
+            if need_download:
+                req_excel = urllib.request.Request(raw_excel_url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req_excel, timeout=8) as resp_excel:
+                    excel_bytes = resp_excel.read()
+                    default_path = os.path.join(DATA_DIR, "default_data.xlsx")
+                    os.makedirs(DATA_DIR, exist_ok=True)
+                    with open(default_path, 'wb') as f:
+                        f.write(excel_bytes)
+                    with open(DRAFT_METADATA_FILE, 'w', encoding='utf-8') as f_meta:
+                        json.dump(remote_meta, f_meta, indent=2)
+                    self.load_data(default_path)
+                    return True
+        except Exception:
+            pass
+        return False
+
     def ensure_loaded(self):
+        self.sync_from_github_raw()
         target_path = self._find_best_candidate()
         if target_path and os.path.exists(target_path):
             try:
