@@ -59,11 +59,13 @@ class DRPService:
 
     def save_as_draft(self, file_path, original_filename):
         os.makedirs(DATA_DIR, exist_ok=True)
+        now_ts = int(pd.Timestamp.now().timestamp())
         meta = {
             'is_draft': True,
             'filename': original_filename,
             'uploaded_at': pd.Timestamp.now().strftime("%d %b %Y"),
-            'records': len(self.df) if self.df is not None else 0
+            'records': len(self.df) if self.df is not None else 0,
+            'updated_at': now_ts
         }
         try:
             with open(DRAFT_METADATA_FILE, 'w', encoding='utf-8') as f:
@@ -137,6 +139,7 @@ class DRPService:
             if not local_meta.get('is_draft') and remote_meta.get('is_draft'):
                 need_download = True
             elif remote_meta.get('is_draft') and (
+                remote_meta.get('updated_at') != local_meta.get('updated_at') or
                 remote_meta.get('uploaded_at') != local_meta.get('uploaded_at') or
                 remote_meta.get('records') != local_meta.get('records') or
                 remote_meta.get('filename') != local_meta.get('filename')
