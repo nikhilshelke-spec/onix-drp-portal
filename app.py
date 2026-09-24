@@ -531,6 +531,7 @@ def api_delete_data():
         return redirect(url_for('employees'))
     try:
         drp_service.delete_data()
+        _sync_to_github_cloud("Deleted dataset draft")
     except Exception:
         pass
     return redirect(url_for('sync_page', sync_msg="Current Excel draft dataset deleted. You can now drag and drop a new Excel file.", sync_ok=1))
@@ -592,7 +593,7 @@ def _sync_to_github_cloud(filename=None):
         git_bin = shutil.which('git')
         if git_bin:
             try:
-                subprocess.run([git_bin, "add", "data/default_data.xlsx", "data/draft_metadata.json"], cwd=cwd, check=False)
+                subprocess.run([git_bin, "add", "-A", "data/"], cwd=cwd, check=False)
                 subprocess.run([git_bin, "commit", "-m", commit_msg], cwd=cwd, check=False)
                 res = subprocess.run([git_bin, "push", "origin", "main"], cwd=cwd, capture_output=True, text=True)
                 if res.returncode == 0:

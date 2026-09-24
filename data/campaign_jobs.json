@@ -121,5 +121,18 @@
     ],
     "failed_list": [],
     "error_message": ""
+  },
+  "a4367d4f": {
+    "id": "a4367d4f",
+    "tier": "Tier 4",
+    "total": 753,
+    "processed": 0,
+    "success_count": 0,
+    "failed_count": 0,
+    "status": "running",
+    "start_time": "2026-09-18 06:50:42",
+    "sent_list": [],
+    "failed_list": [],
+    "error_message": ""
   }
 }

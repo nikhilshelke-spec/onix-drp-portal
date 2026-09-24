@@ -84,13 +84,11 @@ class DRPService:
 
         self.last_sync_source = f"Draft Excel ({original_filename})"
 
-    def delete_data(self):
+    def delete_data_local_only(self):
         self.df = None
         self.file_mtime = 0
         self.current_loaded_path = None
         self.last_sync_source = "None"
-        
-        # Delete default_data.xlsx and all active excel/csv/metadata files
         if os.path.exists(DATA_DIR):
             for fname in os.listdir(DATA_DIR):
                 fpath = os.path.join(DATA_DIR, fname)
@@ -99,6 +97,23 @@ class DRPService:
                         os.remove(fpath)
                     except Exception:
                         pass
+        meta = {'is_draft': False, 'filename': None, 'uploaded_at': None, 'records': 0, 'updated_at': 0}
+        try:
+            with open(DRAFT_METADATA_FILE, 'w', encoding='utf-8') as f:
+                json.dump(meta, f, indent=2)
+        except Exception:
+            pass
+        return True
+
+    def delete_data(self):
+        self.delete_data_local_only()
+        now_ts = int(pd.Timestamp.now().timestamp())
+        meta = {'is_draft': False, 'filename': None, 'uploaded_at': None, 'records': 0, 'updated_at': now_ts}
+        try:
+            with open(DRAFT_METADATA_FILE, 'w', encoding='utf-8') as f:
+                json.dump(meta, f, indent=2)
+        except Exception:
+            pass
         return True
 
     def _find_best_candidate(self):
@@ -126,15 +141,21 @@ class DRPService:
 
     def sync_from_github_raw(self):
         try:
-            raw_meta_url = "https://raw.githubusercontent.com/nikhilshelke-spec/onix-drp-portal/main/data/draft_metadata.json"
-            raw_excel_url = "https://raw.githubusercontent.com/nikhilshelke-spec/onix-drp-portal/main/data/default_data.xlsx"
+            now_ts = int(pd.Timestamp.now().timestamp())
+            raw_meta_url = f"https://raw.githubusercontent.com/nikhilshelke-spec/onix-drp-portal/main/data/draft_metadata.json?t={now_ts}"
+            raw_excel_url = f"https://raw.githubusercontent.com/nikhilshelke-spec/onix-drp-portal/main/data/default_data.xlsx?t={now_ts}"
             
-            req = urllib.request.Request(raw_meta_url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=4) as resp:
+            req = urllib.request.Request(raw_meta_url, headers={'User-Agent': 'Mozilla/5.0', 'Cache-Control': 'no-cache'})
+            with urllib.request.urlopen(req, timeout=5) as resp:
                 remote_meta = json.loads(resp.read().decode('utf-8'))
                 
             local_meta = self.get_draft_status()
             
+            if not remote_meta.get('is_draft'):
+                if local_meta.get('is_draft') or self.df is not None:
+                    self.delete_data_local_only()
+                return True
+
             need_download = False
             if not local_meta.get('is_draft') and remote_meta.get('is_draft'):
                 need_download = True
@@ -147,8 +168,8 @@ class DRPService:
                 need_download = True
 
             if need_download:
-                req_excel = urllib.request.Request(raw_excel_url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req_excel, timeout=8) as resp_excel:
+                req_excel = urllib.request.Request(raw_excel_url, headers={'User-Agent': 'Mozilla/5.0', 'Cache-Control': 'no-cache'})
+                with urllib.request.urlopen(req_excel, timeout=10) as resp_excel:
                     excel_bytes = resp_excel.read()
                     default_path = os.path.join(DATA_DIR, "default_data.xlsx")
                     os.makedirs(DATA_DIR, exist_ok=True)
@@ -158,6 +179,11 @@ class DRPService:
                         json.dump(remote_meta, f_meta, indent=2)
                     self.load_data(default_path)
                     return True
+        except urllib.error.HTTPError as http_err:
+            if http_err.code == 404:
+                local_meta = self.get_draft_status()
+                if local_meta.get('is_draft') or self.df is not None:
+                    self.delete_data_local_only()
         except Exception:
             pass
         return False
