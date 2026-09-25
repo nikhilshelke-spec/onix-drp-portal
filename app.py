@@ -777,9 +777,18 @@ def api_employee_link():
 
 @app.route('/api/version')
 def api_version():
+    commit_str = '3d3fbd5'
+    try:
+        import subprocess
+        cwd = os.path.dirname(os.path.abspath(__file__))
+        res = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], cwd=cwd, capture_output=True, text=True)
+        if res.returncode == 0 and res.stdout.strip():
+            commit_str = res.stdout.strip()
+    except Exception:
+        pass
     return jsonify({
         'version': 'v2.5',
-        'commit': '29de430',
+        'commit': commit_str,
         'priority_kpis': drp_service.get_priority_kpis(),
         'overall_kpis': drp_service.get_kpis()
     })
