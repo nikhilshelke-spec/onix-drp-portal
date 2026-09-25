@@ -634,26 +634,19 @@ def api_upload_excel():
         save_path = os.path.join(DATA_DIR, f"current_data{ext}")
         file.save(save_path)
 
-        # Also copy directly over default_data.xlsx
-        default_path = os.path.join(DATA_DIR, "default_data.xlsx")
-        try:
-            import shutil
-            shutil.copyfile(save_path, default_path)
-        except Exception:
-            pass
-        
         success, msg = drp_service.load_data(save_path)
         if success and drp_service.df is not None:
             drp_service.save_as_draft(save_path, file.filename)
             kpis = drp_service.get_kpis()
             t1 = kpis.get('tier1_count', 0)
+            rec_count = len(drp_service.df)
 
             # Auto sync to Render Cloud via Git Push
             cloud_ok, cloud_msg = _sync_to_github_cloud(file.filename)
             if cloud_ok:
-                success_msg = f"✅ Excel uploaded ('{file.filename}') & AUTO-PUSHED TO RENDER CLOUD! Total {len(drp_service.df)} records loaded (Tier 1: {t1}). Executives will see this updated dataset on Render!"
+                success_msg = f"✅ Excel uploaded ('{file.filename}') & AUTO-PUSHED TO RENDER CLOUD! Total {rec_count} records loaded (Tier 1: {t1}). Executives will see this updated dataset on Render!"
             else:
-                success_msg = f"Excel uploaded & active ('{file.filename}')! Total {len(drp_service.df)} records loaded (Tier 1: {t1}). ({cloud_msg})"
+                success_msg = f"Excel uploaded & active ('{file.filename}')! Total {rec_count} records loaded (Tier 1: {t1}). ({cloud_msg})"
 
             return redirect(url_for('sync_page', sync_msg=success_msg, sync_ok=1))
         return redirect(url_for('sync_page', sync_msg=msg, sync_ok=0))

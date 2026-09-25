@@ -1,7 +1,7 @@
 {
-  "is_draft": false,
-  "filename": null,
-  "uploaded_at": null,
-  "records": 0,
-  "updated_at": 0
+  "is_draft": true,
+  "filename": "test_upload.csv",
+  "uploaded_at": "25 Sep 2026",
+  "records": 846,
+  "updated_at": 1790336621
 }

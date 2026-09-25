@@ -73,10 +73,12 @@ class DRPService:
         except Exception:
             pass
 
-        # Always sync uploaded file over default_data.xlsx as well
+        # Always save a valid Excel binary to default_data.xlsx
         default_path = os.path.join(DATA_DIR, "default_data.xlsx")
         try:
-            if file_path != default_path and os.path.exists(file_path):
+            if self.df is not None:
+                self.df.to_excel(default_path, index=False)
+            elif file_path != default_path and os.path.exists(file_path):
                 import shutil
                 shutil.copyfile(file_path, default_path)
         except Exception:
@@ -151,20 +153,18 @@ class DRPService:
                 
             local_meta = self.get_draft_status()
             
+            remote_ts = int(remote_meta.get('updated_at', 0))
+            local_ts = int(local_meta.get('updated_at', 0))
+
             if not remote_meta.get('is_draft'):
-                if local_meta.get('is_draft') or self.df is not None:
+                if (local_meta.get('is_draft') or self.df is not None) and remote_ts >= local_ts:
                     self.delete_data_local_only()
                 return True
 
             need_download = False
             if not local_meta.get('is_draft') and remote_meta.get('is_draft'):
                 need_download = True
-            elif remote_meta.get('is_draft') and (
-                remote_meta.get('updated_at') != local_meta.get('updated_at') or
-                remote_meta.get('uploaded_at') != local_meta.get('uploaded_at') or
-                remote_meta.get('records') != local_meta.get('records') or
-                remote_meta.get('filename') != local_meta.get('filename')
-            ):
+            elif remote_meta.get('is_draft') and remote_ts > local_ts:
                 need_download = True
 
             if need_download:
@@ -207,20 +207,30 @@ class DRPService:
         target_path = file_path or self._find_best_candidate()
         if target_path and os.path.exists(target_path):
             try:
+                df = None
                 if target_path.endswith('.csv'):
-                    df = pd.read_csv(target_path)
+                    try:
+                        df = pd.read_csv(target_path)
+                    except Exception:
+                        df = pd.read_excel(target_path)
                 else:
-                    df = pd.read_excel(target_path)
-                self.df = self._clean_and_normalize(df)
-                self.file_mtime = os.path.getmtime(target_path)
-                self.current_loaded_path = target_path
-                meta = self.get_draft_status()
-                if meta.get('is_draft'):
-                    self.last_sync_source = f"Draft Excel ({meta.get('filename')})"
-                elif 'default_data' in target_path:
-                    self.last_sync_source = "Bundled Standard Excel"
-                return True, f"Successfully loaded {len(self.df)} records"
+                    try:
+                        df = pd.read_excel(target_path)
+                    except Exception:
+                        df = pd.read_csv(target_path)
+
+                if df is not None:
+                    self.df = self._clean_and_normalize(df)
+                    self.file_mtime = os.path.getmtime(target_path)
+                    self.current_loaded_path = target_path
+                    meta = self.get_draft_status()
+                    if meta.get('is_draft'):
+                        self.last_sync_source = f"Draft Excel ({meta.get('filename')})"
+                    elif 'default_data' in target_path:
+                        self.last_sync_source = "Bundled Standard Excel"
+                    return True, f"Successfully loaded {len(self.df)} records"
             except Exception as e:
+                self.df = None
                 return False, f"Error loading data: {str(e)}"
         self.df = None
         self.file_mtime = 0
