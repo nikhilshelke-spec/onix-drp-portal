@@ -25,14 +25,13 @@ class DRPService:
             try:
                 with open(DRAFT_METADATA_FILE, 'r', encoding='utf-8') as f:
                     meta = json.load(f)
-                    if meta.get('is_draft'):
-                        default_path = os.path.join(DATA_DIR, "default_data.xlsx")
-                        if os.path.exists(default_path) or any(os.path.exists(os.path.join(DATA_DIR, f"current_data{ext}")) for ext in ['.xlsx', '.xls', '.csv']):
-                            meta['exists'] = True
-                            return meta
+                    default_path = os.path.join(DATA_DIR, "default_data.xlsx")
+                    has_file = os.path.exists(default_path) or any(os.path.exists(os.path.join(DATA_DIR, f"current_data{ext}")) for ext in ['.xlsx', '.xls', '.csv'])
+                    meta['exists'] = bool(meta.get('is_draft')) and has_file
+                    return meta
             except Exception:
                 pass
-        return {'is_draft': False, 'exists': False}
+        return {'is_draft': False, 'exists': False, 'updated_at': 0}
 
     def get_data_as_of(self):
         try:
@@ -156,29 +155,25 @@ class DRPService:
             remote_ts = int(remote_meta.get('updated_at', 0))
             local_ts = int(local_meta.get('updated_at', 0))
 
-            if not remote_meta.get('is_draft'):
-                if (local_meta.get('is_draft') or self.df is not None) and remote_ts >= local_ts:
-                    self.delete_data_local_only()
-                return True
-
-            need_download = False
-            if not local_meta.get('is_draft') and remote_meta.get('is_draft'):
-                need_download = True
-            elif remote_meta.get('is_draft') and remote_ts > local_ts:
-                need_download = True
-
-            if need_download:
-                req_excel = urllib.request.Request(raw_excel_url, headers={'User-Agent': 'Mozilla/5.0', 'Cache-Control': 'no-cache'})
-                with urllib.request.urlopen(req_excel, timeout=10) as resp_excel:
-                    excel_bytes = resp_excel.read()
-                    default_path = os.path.join(DATA_DIR, "default_data.xlsx")
-                    os.makedirs(DATA_DIR, exist_ok=True)
-                    with open(default_path, 'wb') as f:
-                        f.write(excel_bytes)
-                    with open(DRAFT_METADATA_FILE, 'w', encoding='utf-8') as f_meta:
-                        json.dump(remote_meta, f_meta, indent=2)
-                    self.load_data(default_path)
+            # Only sync from GitHub Raw if remote metadata is strictly NEWER than local state!
+            if remote_ts > local_ts:
+                if not remote_meta.get('is_draft'):
+                    if local_meta.get('is_draft') or self.df is not None:
+                        self.delete_data_local_only()
                     return True
+
+                if remote_meta.get('is_draft'):
+                    req_excel = urllib.request.Request(raw_excel_url, headers={'User-Agent': 'Mozilla/5.0', 'Cache-Control': 'no-cache'})
+                    with urllib.request.urlopen(req_excel, timeout=10) as resp_excel:
+                        excel_bytes = resp_excel.read()
+                        default_path = os.path.join(DATA_DIR, "default_data.xlsx")
+                        os.makedirs(DATA_DIR, exist_ok=True)
+                        with open(default_path, 'wb') as f:
+                            f.write(excel_bytes)
+                        with open(DRAFT_METADATA_FILE, 'w', encoding='utf-8') as f_meta:
+                            json.dump(remote_meta, f_meta, indent=2)
+                        self.load_data(default_path)
+                        return True
         except urllib.error.HTTPError as http_err:
             if http_err.code == 404:
                 local_meta = self.get_draft_status()
