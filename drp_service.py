@@ -499,38 +499,141 @@ class DRPService:
             'all_clusters': sorted(list(set(self.df['cluster'].dropna().tolist())))
         }
 
+    PRIORITY_8_PRODUCTS = [
+        'BigQuery', 'Dataflow', 'Cloud SQL', 'Looker',
+        'Dataproc', 'AlloyDB for PostgreSQL', 'Oracle', 'Spanner'
+    ]
+
+    REMAINING_17_PRODUCTS = [
+        'Cloud Security',
+        'Security Command Center',
+        'Security Operations',
+        'Google Threat Intelligence',
+        'Google Compute Engine',
+        'Google Cloud Networking',
+        'SAP on Google Cloud',
+        'Google Cloud VMware Engine',
+        'Google Distributed Cloud',
+        'Workspace',
+        'Google Kubernetes Engine',
+        'Apigee API Management',
+        'Cloud Run',
+        'Gemini Enterprise Agent Platform',
+        'AI Applications',
+        'Gemini Enterprise',
+        'Gemini Enterprise for Customer Experience'
+    ]
+
+    def compute_subset_kpis(self, sub_df):
+        if sub_df is None or len(sub_df) == 0:
+            return {
+                'total_headcount': 0, 'active_tech_headcount': 0,
+                'tier1_count': 0, 'tier1_pct': 0.0,
+                'tier2_count': 0, 'tier2_pct': 0.0,
+                'tier3_count': 0, 'tier3_pct': 0.0,
+                'tier4_count': 0, 'tier4_pct': 0.0,
+                'zero_score_count': 0, 'zero_score_pct': 0.0,
+                'drp_not_created_count': 0, 'drp_not_created_pct': 0.0,
+                'drp_created_count': 0, 'drp_created_pct': 0.0,
+                'exempted_count': 0, 'avg_score': 0.0
+            }
+
+        total = len(sub_df)
+        counts = sub_df['normalized_tier'].value_counts().to_dict()
+
+        t1 = counts.get('Tier 1', 0)
+        t2 = counts.get('Tier 2', 0)
+        t3 = counts.get('Tier 3', 0)
+        t4 = int(((sub_df['normalized_tier'] == 'Tier 4') & (sub_df['score'] > 0)).sum())
+        zero_score = int((sub_df['score'] == 0).sum())
+        t0 = int(((sub_df['drp_status'].str.lower().str.contains('not created')) | (sub_df['drp_id'].isin(['None', '', 'nan']))).sum())
+        exempted = counts.get('Exempted', 0) + counts.get('Admin', 0)
+
+        active_tech = total - exempted
+        t1_pct = round((t1 / max(1, active_tech)) * 100, 1)
+        t2_pct = round((t2 / max(1, active_tech)) * 100, 1)
+        t3_pct = round((t3 / max(1, active_tech)) * 100, 1)
+        t4_pct = round((t4 / max(1, active_tech)) * 100, 1)
+        zero_score_pct = round((zero_score / max(1, active_tech)) * 100, 1)
+
+        drp_created = total - t0
+        drp_created_pct = round((drp_created / max(1, total)) * 100, 1)
+        drp_not_created_pct = round((t0 / max(1, total)) * 100, 1)
+
+        active_scores = sub_df[sub_df['normalized_tier'].isin(['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'])]['score']
+        avg_score = round(float(active_scores.mean()), 1) if len(active_scores) > 0 else 0.0
+
+        return {
+            'total_headcount': total,
+            'active_tech_headcount': active_tech,
+            'tier1_count': t1,
+            'tier1_pct': t1_pct,
+            'tier2_count': t2,
+            'tier2_pct': t2_pct,
+            'tier3_count': t3,
+            'tier3_pct': t3_pct,
+            'tier4_count': t4,
+            'tier4_pct': t4_pct,
+            'zero_score_count': zero_score,
+            'zero_score_pct': zero_score_pct,
+            'drp_not_created_count': t0,
+            'drp_not_created_pct': drp_not_created_pct,
+            'drp_created_count': drp_created,
+            'drp_created_pct': drp_created_pct,
+            'exempted_count': exempted,
+            'avg_score': avg_score
+        }
+
     def get_priority_df(self):
         self.ensure_loaded()
         if self.df is None or len(self.df) == 0:
             return None
-        priority_names = [
-            'BigQuery', 'Dataflow', 'Cloud SQL', 'Looker',
-            'Dataproc', 'AlloyDB for PostgreSQL', 'Oracle', 'Spanner'
-        ]
         p_cats = self.df['product'].apply(self.normalize_product_category)
-        return self.df[p_cats.isin(priority_names)].copy()
+        return self.df[p_cats.isin(self.PRIORITY_8_PRODUCTS)].copy()
 
     def get_priority_kpis(self):
-        return self.get_kpis()
+        self.ensure_loaded()
+        if self.df is None or len(self.df) == 0:
+            empty_kpis = self.compute_subset_kpis(None)
+            return {
+                'kpis_25': empty_kpis,
+                'kpis_8': empty_kpis,
+                'kpis_17': empty_kpis,
+                **empty_kpis
+            }
 
-    def get_priority_chart_data(self):
-        pdf = self.get_priority_df()
-        if pdf is None or len(pdf) == 0:
+        p_cats = self.df['product'].apply(self.normalize_product_category)
+        pdf_8 = self.df[p_cats.isin(self.PRIORITY_8_PRODUCTS)]
+        pdf_17 = self.df[~p_cats.isin(self.PRIORITY_8_PRODUCTS)]
+
+        kpis_25 = self.compute_subset_kpis(self.df)
+        kpis_8 = self.compute_subset_kpis(pdf_8)
+        kpis_17 = self.compute_subset_kpis(pdf_17)
+
+        res = {
+            'kpis_25': kpis_25,
+            'kpis_8': kpis_8,
+            'kpis_17': kpis_17
+        }
+        res.update(kpis_8)
+        return res
+
+    def _build_chart_data_for_df(self, sub_df):
+        if sub_df is None or len(sub_df) == 0:
             return {
                 'cluster_dist': [],
-                'product_items': [],
                 'manager_leaderboard': [],
                 'all_clusters': []
             }
 
-        clusters = [c for c in pdf['cluster'].value_counts().index.tolist() if c and c != 'General']
+        clusters = [c for c in sub_df['cluster'].value_counts().index.tolist() if c and c != 'General']
         if not clusters:
-            clusters = pdf['cluster'].value_counts().index.tolist()
+            clusters = sub_df['cluster'].value_counts().index.tolist()
         clusters = clusters[:10]
 
         cluster_tier_breakdown = []
         for c in clusters:
-            cdf = pdf[pdf['cluster'] == c]
+            cdf = sub_df[sub_df['cluster'] == c]
             cluster_tier_breakdown.append({
                 'cluster': c,
                 'total': len(cdf),
@@ -542,11 +645,8 @@ class DRPService:
                 't0': int(((cdf['drp_status'].str.lower().str.contains('not created')) | (cdf['drp_id'].isin(['None', '', 'nan']))).sum())
             })
 
-        prod_counts = pdf[pdf['product'] != 'Not Specified']['product'].value_counts().head(7)
-        product_items = [{'name': k, 'count': int(v)} for k, v in prod_counts.items() if k]
-
         mgr_data = []
-        for (mgr, clus), group in pdf.groupby(['manager', 'cluster']):
+        for (mgr, clus), group in sub_df.groupby(['manager', 'cluster']):
             if mgr and mgr != 'Unassigned':
                 mgr_data.append({
                     'manager': mgr,
@@ -564,9 +664,41 @@ class DRPService:
 
         return {
             'cluster_dist': cluster_tier_breakdown,
-            'product_items': product_items,
             'manager_leaderboard': mgr_data,
-            'all_clusters': sorted(list(set(pdf['cluster'].dropna().tolist())))
+            'all_clusters': sorted(list(set(sub_df['cluster'].dropna().tolist())))
+        }
+
+    def get_priority_chart_data(self):
+        self.ensure_loaded()
+        if self.df is None or len(self.df) == 0:
+            empty_chart = self._build_chart_data_for_df(None)
+            return {
+                'charts_8': empty_chart,
+                'charts_17': empty_chart,
+                'charts_all': empty_chart,
+                'cluster_dist': [],
+                'manager_leaderboard': [],
+                'all_clusters': []
+            }
+
+        p_cats = self.df['product'].apply(self.normalize_product_category)
+        pdf_8 = self.df[p_cats.isin(self.PRIORITY_8_PRODUCTS)].copy()
+        pdf_17 = self.df[~p_cats.isin(self.PRIORITY_8_PRODUCTS)].copy()
+        pdf_all = self.df.copy()
+
+        charts_8 = self._build_chart_data_for_df(pdf_8)
+        charts_17 = self._build_chart_data_for_df(pdf_17)
+        charts_all = self._build_chart_data_for_df(pdf_all)
+
+        all_clusters_set = sorted(list(set(charts_8['all_clusters'] + charts_all['all_clusters'] + charts_17['all_clusters'])))
+
+        return {
+            'charts_8': charts_8,
+            'charts_17': charts_17,
+            'charts_all': charts_all,
+            'cluster_dist': charts_8['cluster_dist'],
+            'manager_leaderboard': charts_8['manager_leaderboard'],
+            'all_clusters': all_clusters_set
         }
 
     def normalize_product_category(self, p_str):
@@ -708,8 +840,10 @@ class DRPService:
             mask = df_prod['cat'] == pname
             table_b_rows.append(compute_row(pname, mask))
 
-        other_mask = df_prod['cat'] == 'Other products'
-        table_b_rows.append(compute_row('Other products', other_mask))
+        other_mask = df_prod['cat'].isin(['Other products', 'Not Specified'])
+        other_row = compute_row('Other products', other_mask)
+        if other_row['total'] > 0:
+            table_b_rows.append(other_row)
 
         b_gt = {
             'product': 'Grand Total',
@@ -720,9 +854,20 @@ class DRPService:
             'total': sum(r['total'] for r in table_b_rows)
         }
 
+        table_all_rows = table_a_rows + table_b_rows
+        all_gt = {
+            'product': 'Grand Total',
+            't1': a_gt['t1'] + b_gt['t1'],
+            't2': a_gt['t2'] + b_gt['t2'],
+            't3': a_gt['t3'] + b_gt['t3'],
+            't4': a_gt['t4'] + b_gt['t4'],
+            'total': a_gt['total'] + b_gt['total']
+        }
+
         return {
             'table_a': {'rows': table_a_rows, 'grand_total': a_gt},
-            'table_b': {'rows': table_b_rows, 'grand_total': b_gt}
+            'table_b': {'rows': table_b_rows, 'grand_total': b_gt},
+            'table_all': {'rows': table_all_rows, 'grand_total': all_gt}
         }
 
     def get_user_scope(self, verified_email, role='user'):

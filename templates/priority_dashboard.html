@@ -1,31 +1,155 @@
 {% extends "base.html" %}
 
+{% macro render_composition_cards(c_kpi) %}
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+
+    <!-- 1. Tier 1 -->
+    <div class="bg-white p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+        <div>
+            <div class="flex items-start justify-between">
+                <div>
+                    <h4 class="text-sm font-black text-emerald-800 uppercase tracking-tight">Tier 1</h4>
+                    <p class="text-[11px] font-bold text-emerald-600 mt-0.5">(49+ Points)</p>
+                </div>
+                <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 text-xs">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <h3 class="text-2xl font-black text-emerald-700 leading-none">{{ c_kpi.tier1_count }}</h3>
+                <p class="text-[11px] font-bold text-emerald-600 mt-1">{{ c_kpi.tier1_pct }}% of active users</p>
+            </div>
+        </div>
+        <div class="mt-2.5 pt-2 border-t border-emerald-100 flex items-center justify-between text-[11px]">
+            <span class="text-emerald-700 font-semibold">Requirement</span>
+            <span class="font-black text-emerald-800">49+ Points</span>
+        </div>
+    </div>
+
+    <!-- 2. Tier 2 -->
+    <div class="bg-white p-3.5 rounded-xl border shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between" style="border-color: #30496D; background-color: #F6F9FC;">
+        <div>
+            <div class="flex items-start justify-between">
+                <div>
+                    <h4 class="text-sm font-black uppercase tracking-tight" style="color: #30496D;">Tier 2</h4>
+                    <p class="text-[11px] font-bold mt-0.5" style="color: #4A6D9C;">(35 – 49 pts)</p>
+                </div>
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 text-xs" style="background-color: #30496D;">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <h3 class="text-2xl font-black leading-none" style="color: #30496D;">{{ c_kpi.tier2_count }}</h3>
+                <p class="text-[11px] font-bold mt-1" style="color: #4A6D9C;">{{ c_kpi.tier2_pct }}% of active users</p>
+            </div>
+        </div>
+        <div class="mt-2.5 pt-2 border-t border-slate-200 flex items-center justify-start text-[11px]">
+            <span class="text-slate-600 font-semibold flex items-center">
+                <i class="fa-solid fa-arrow-left text-[10px] text-blue-600 mr-1.5"></i>
+                <span>Next Target:&nbsp;</span>
+            </span>
+            <span class="font-black" style="color: #30496D;">Tier 1 (49+ pts)</span>
+        </div>
+    </div>
+
+    <!-- 3. Tier 3 -->
+    <div class="bg-white p-3.5 rounded-xl border border-amber-200 bg-amber-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+        <div>
+            <div class="flex items-start justify-between">
+                <div>
+                    <h4 class="text-sm font-black text-amber-800 uppercase tracking-tight">Tier 3</h4>
+                    <p class="text-[11px] font-bold text-amber-600 mt-0.5">(20 – 34 pts)</p>
+                </div>
+                <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 text-xs">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <h3 class="text-2xl font-black text-amber-800 leading-none">{{ c_kpi.tier3_count }}</h3>
+                <p class="text-[11px] font-bold text-amber-600 mt-1">{{ c_kpi.tier3_pct }}% of active users</p>
+            </div>
+        </div>
+        <div class="mt-2.5 pt-2 border-t border-amber-100 flex items-center justify-start text-[11px]">
+            <span class="text-amber-700 font-semibold flex items-center">
+                <i class="fa-solid fa-arrow-left text-[10px] text-amber-600 mr-1.5"></i>
+                <span>Next Target:&nbsp;</span>
+            </span>
+            <span class="font-black text-amber-800">Tier 2 (35+ pts)</span>
+        </div>
+    </div>
+
+    <!-- 4. Tier 4 -->
+    <div class="bg-white p-3.5 rounded-xl border border-purple-200 bg-purple-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+        <div>
+            <div class="flex items-start justify-between">
+                <div>
+                    <h4 class="text-sm font-black text-purple-800 uppercase tracking-tight">Tier 4</h4>
+                    <p class="text-[11px] font-bold text-purple-600 mt-0.5">(1 – 19 pts)</p>
+                </div>
+                <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700 shrink-0 text-xs">
+                    <i class="fa-solid fa-seedling"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <h3 class="text-2xl font-black text-purple-800 leading-none">{{ c_kpi.tier4_count }}</h3>
+                <p class="text-[11px] font-bold text-purple-600 mt-1">{{ c_kpi.tier4_pct }}% of active users</p>
+            </div>
+        </div>
+        <div class="mt-2.5 pt-2 border-t border-purple-100 flex items-center justify-start text-[11px]">
+            <span class="text-purple-700 font-semibold flex items-center">
+                <i class="fa-solid fa-arrow-left text-[10px] text-purple-600 mr-1.5"></i>
+                <span>Next Target:&nbsp;</span>
+            </span>
+            <span class="font-black text-purple-800">Tier 3 (20+ pts)</span>
+        </div>
+    </div>
+
+    <!-- 5. Total Active Users -->
+    <div class="bg-white p-3.5 rounded-xl border border-rose-200 bg-rose-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+        <div>
+            <div class="flex items-start justify-between">
+                <div>
+                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight">Total Active Users</h4>
+                    <p class="text-[11px] font-bold text-slate-500 mt-0.5">(Headcount)</p>
+                </div>
+                <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center text-rose-700 shrink-0 text-xs">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <h3 class="text-2xl font-black text-slate-900 leading-none">{{ c_kpi.total_headcount }}</h3>
+                <p class="text-[11px] font-bold text-slate-500 mt-1">Total active dataset</p>
+            </div>
+        </div>
+        <div class="mt-2.5 pt-2 border-t border-rose-100 flex flex-col space-y-0.5 text-[10px] font-bold">
+            <div class="flex items-center text-emerald-700">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                <span>DRP ID Created: {{ c_kpi.drp_created_count }}</span>
+            </div>
+            <div class="flex items-center text-rose-600">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>
+                <span>DRP ID Not Created: {{ c_kpi.drp_not_created_count }}</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endmacro %}
+
 {% block content %}
 <div class="space-y-6">
 
-    <!-- Top Executive Header Banner (Focus 8 Products Theme) -->
-    <div class="rounded-2xl p-6 text-white shadow-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border border-amber-600/40" style="background: linear-gradient(135deg, #30496D 0%, #1e2f47 100%);">
+    <!-- Top Executive Header Banner -->
+    <div class="rounded-2xl p-6 text-white shadow-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border border-[#30496D]/40" style="background: linear-gradient(135deg, #30496D 0%, #1e2f47 100%);">
         <div>
-            <div class="flex items-center space-x-2 mb-2 flex-wrap gap-y-1">
-                <span class="px-2.5 py-0.5 bg-amber-500 text-white text-xs font-black rounded-full uppercase tracking-wider flex items-center space-x-1">
-                    <i class="fa-solid fa-star text-[10px]"></i>
-                    <span>Focus 8 Products View</span>
-                </span>
-                <span class="px-3 py-0.5 bg-black/30 text-amber-200 text-xs font-bold rounded-full border border-white/15 flex items-center space-x-1.5">
-                    <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[10px]"></i>
-                    <span>Data as of: <strong class="text-white font-extrabold">{{ data_as_of }}</strong></span>
-                </span>
-            </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Onix Focused 8 Google-priority Products Dashboard</h1>
-            <div class="mt-2 space-y-0.5">
-                <p class="text-sm text-slate-200">Executive overview filtered exclusively for the 8 Google-priority focus areas (BigQuery, Dataflow, Cloud SQL, Looker, Dataproc, AlloyDB, Oracle, Spanner).</p>
-                <p class="text-sm text-slate-100 font-medium">
-                    <span class="font-bold px-2 py-0.5 rounded text-white text-xs mr-1" style="background-color: #f35959;">Goal:</span>
-                    Drive 100% of priority technical staff to Tier 1 Mastery (49+ points).
-                </p>
-            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Delivery Readiness Portal Onix Dashboard</h1>
         </div>
-        <div class="flex items-center gap-2.5 shrink-0 self-start sm:self-center">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0 self-start sm:self-center">
+            <span class="px-3.5 py-1.5 bg-black/30 text-amber-200 text-xs font-bold rounded-full border border-white/15 flex items-center space-x-1.5">
+                <i class="fa-solid fa-clock-rotate-left text-amber-400 text-[10px]"></i>
+                <span>Data as of: <strong class="text-white font-extrabold">{{ data_as_of }}</strong></span>
+            </span>
+
             {% if is_owner %}
             <button onclick="openLeaderShare()" class="px-3.5 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2 border border-white/20 hover:brightness-110" style="background-color: #30496D;" title="Share Leadership Link">
                 <i class="fa-solid fa-share-nodes text-slate-200"></i>
@@ -40,129 +164,94 @@
         </div>
     </div>
 
-    <!-- Executive KPI Grid (Filtered EXCLUSIVELY for 8 Google-priority products) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-        <!-- 1. Tier 1 -->
-        <div class="bg-white p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-            <div>
-                <div class="flex items-start justify-between">
-                    <div>
-                        <h4 class="text-sm sm:text-base font-black text-emerald-800 uppercase tracking-tight">Tier 1</h4>
-                        <p class="text-[11px] font-bold text-emerald-600 mt-0.5">(49+ Points)</p>
-                    </div>
-                    <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 text-xs">
-                        <i class="fa-solid fa-trophy"></i>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <h3 class="text-2xl font-black text-emerald-700 leading-none">{{ kpis.tier1_count }}</h3>
-                    <p class="text-[11px] font-bold text-emerald-600 mt-1">{{ kpis.tier1_pct }}% of priority team</p>
-                </div>
+    <!-- 1. 25 Product Tier Compositions -->
+    <div class="space-y-3">
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-100 text-blue-800 uppercase tracking-wider">
+                    <i class="fa-solid fa-layer-group text-[10px] mr-1"></i> 25 Products
+                </span>
+                <h3 class="text-base font-extrabold text-slate-900 tracking-tight">25 Product Tier Compositions</h3>
             </div>
-            <div class="mt-2.5 pt-2 border-t border-emerald-100 flex justify-between items-center text-[11px]">
-                <span class="text-emerald-700 font-semibold">Requirement</span>
-                <span class="font-black text-emerald-800">49+ Points</span>
-            </div>
+            <p class="text-[11px] text-slate-500 mt-1 font-medium leading-relaxed">
+                (1) BigQuery, (2) Dataflow, (3) Cloud SQL, (4) Looker, (5) Dataproc, (6) AlloyDB for PostgreSQL, (7) Oracle, (8) Spanner, (9) Cloud Security, (10) Security Command Center, (11) Security Operations, (12) Google Threat Intelligence, (13) Google Compute Engine, (14) Google Cloud Networking, (15) SAP on Google Cloud, (16) Google Cloud VMware Engine, (17) Google Distributed Cloud, (18) Workspace, (19) Google Kubernetes Engine, (20) Apigee API Management, (21) Cloud Run, (22) Gemini Enterprise Agent Platform, (23) AI Applications, (24) Gemini Enterprise, (25) Gemini Enterprise for Customer Experience
+            </p>
         </div>
-
-        <!-- 2. Tier 2 -->
-        <div class="bg-white p-3.5 rounded-xl border shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between" style="border-color: #30496D; background-color: #F6F9FC;">
-            <div>
-                <div class="flex items-start justify-between">
-                    <div>
-                        <h4 class="text-sm sm:text-base font-black uppercase tracking-tight" style="color: #30496D;">Tier 2</h4>
-                        <p class="text-[11px] font-bold mt-0.5" style="color: #4A6D9C;">(35 – 49 pts)</p>
-                    </div>
-                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 text-xs" style="background-color: #30496D;">
-                        <i class="fa-solid fa-rocket"></i>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <h3 class="text-2xl font-black leading-none" style="color: #30496D;">{{ kpis.tier2_count }}</h3>
-                    <p class="text-[11px] font-bold mt-1" style="color: #4A6D9C;">{{ kpis.tier2_pct }}% of priority team</p>
-                </div>
-            </div>
-            <div class="mt-2.5 pt-2 border-t border-slate-200 flex justify-between items-center text-[11px]">
-                <span class="text-slate-600 font-semibold">Next Target</span>
-                <span class="font-black" style="color: #30496D;">Tier 1 (49+ pts)</span>
-            </div>
-        </div>
-
-        <!-- 3. Tier 3 -->
-        <div class="bg-white p-3.5 rounded-xl border border-amber-200 bg-amber-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-            <div>
-                <div class="flex items-start justify-between">
-                    <div>
-                        <h4 class="text-sm sm:text-base font-black text-amber-800 uppercase tracking-tight">Tier 3</h4>
-                        <p class="text-[11px] font-bold text-amber-600 mt-0.5">(20 – 34 pts)</p>
-                    </div>
-                    <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 text-xs">
-                        <i class="fa-solid fa-chart-line"></i>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <h3 class="text-2xl font-black text-amber-800 leading-none">{{ kpis.tier3_count }}</h3>
-                    <p class="text-[11px] font-bold text-amber-600 mt-1">{{ kpis.tier3_pct }}% of priority team</p>
-                </div>
-            </div>
-            <div class="mt-2.5 pt-2 border-t border-amber-100 flex justify-between items-center text-[11px]">
-                <span class="text-amber-700 font-semibold">Next Target</span>
-                <span class="font-black text-amber-800">Tier 2 (35 pts)</span>
-            </div>
-        </div>
-
-        <!-- 4. Tier 4 -->
-        <div class="bg-white p-3.5 rounded-xl border border-purple-200 bg-purple-50/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-            <div>
-                <div class="flex items-start justify-between">
-                    <div>
-                        <h4 class="text-sm sm:text-base font-black text-purple-800 uppercase tracking-tight">Tier 4</h4>
-                        <p class="text-[11px] font-bold text-purple-600 mt-0.5">(1 – 19 pts)</p>
-                    </div>
-                    <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700 shrink-0 text-xs">
-                        <i class="fa-solid fa-seedling"></i>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <h3 class="text-2xl font-black text-purple-800 leading-none">{{ kpis.tier4_count }}</h3>
-                    <p class="text-[11px] font-bold text-purple-600 mt-1">{{ kpis.tier4_pct }}% of priority team</p>
-                </div>
-            </div>
-            <div class="mt-2.5 pt-2 border-t border-purple-100 flex justify-between items-center text-[11px]">
-                <span class="text-purple-700 font-semibold">Next Target</span>
-                <span class="font-black text-purple-800">Tier 3 (20 pts)</span>
-            </div>
-        </div>
-
+        {{ render_composition_cards(kpis.kpis_25) }}
     </div>
 
-    <!-- Cluster Tier Progression for 8 Priority Products -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-star text-amber-500 text-sm"></i>
-                    <span>Cluster Progression (8 Priority Products)</span>
-                </h3>
-                <p class="text-xs text-slate-500">Tier maturity by major business delivery units in BigQuery, Dataflow, Cloud SQL, Looker, Dataproc, AlloyDB, Oracle, and Spanner</p>
+    <!-- 2. 8 Product Tier Compositions -->
+    <div class="space-y-3">
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-800 uppercase tracking-wider">
+                    <i class="fa-solid fa-star text-[10px] mr-1"></i> 8 Priority
+                </span>
+                <h3 class="text-base font-extrabold text-slate-900 tracking-tight">8 Product Tier Compositions</h3>
             </div>
-            <a href="{{ url_for('employees') }}" class="text-xs font-semibold hover:underline" style="color: #30496D;">View Employee Hub &rarr;</a>
+            <p class="text-[11px] text-slate-500 mt-1 font-medium leading-relaxed">
+                (1) BigQuery, (2) Dataflow, (3) Cloud SQL, (4) Looker, (5) Dataproc, (6) AlloyDB for PostgreSQL, (7) Oracle, (8) Spanner
+            </p>
+        </div>
+        {{ render_composition_cards(kpis.kpis_8) }}
+    </div>
+
+    <!-- 3. Remaining 17th Product Compositions -->
+    <div class="space-y-3">
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-100 text-purple-800 uppercase tracking-wider">
+                    <i class="fa-solid fa-cubes text-[10px] mr-1"></i> 17 Remaining
+                </span>
+                <h3 class="text-base font-extrabold text-slate-900 tracking-tight">Remaining 17th product Compositions</h3>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1 font-medium leading-relaxed">
+                (1) Cloud Security, (2) Security Command Center, (3) Security Operations, (4) Google Threat Intelligence, (5) Google Compute Engine, (6) Google Cloud Networking, (7) SAP on Google Cloud, (8) Google Cloud VMware Engine, (9) Google Distributed Cloud, (10) Workspace, (11) Google Kubernetes Engine, (12) Apigee API Management, (13) Cloud Run, (14) Gemini Enterprise Agent Platform, (15) AI Applications, (16) Gemini Enterprise, (17) Gemini Enterprise for Customer Experience
+            </p>
+        </div>
+        {{ render_composition_cards(kpis.kpis_17) }}
+    </div>
+
+    <!-- Cluster Progression -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                <i class="fa-solid fa-star text-amber-500 text-sm"></i>
+                <span>Cluster Progression</span>
+            </h3>
+
+            <!-- Scope Filter Dropdown -->
+            <div class="flex items-center space-x-2">
+                <label for="clusterScopeFilter" class="text-xs font-bold text-slate-600 whitespace-nowrap">Filter Scope:</label>
+                <select id="clusterScopeFilter" onchange="updateClusterChart(this.value)" class="text-xs bg-slate-50 border border-slate-300 rounded-lg py-1.5 px-3 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="8_priority" selected>8 Priority Products (Default)</option>
+                    <option value="25_all">25 Products (All)</option>
+                    <option value="17_remaining">Remaining 17 Products</option>
+                </select>
+                <a href="{{ url_for('employees') }}" class="text-xs font-semibold hover:underline ml-2" style="color: #30496D;">View Employee Hub &rarr;</a>
+            </div>
         </div>
         <div class="h-64 relative">
             <canvas id="clusterChart"></canvas>
         </div>
     </div>
 
-    <!-- Table A: 8 Google-priority products -->
+    <!-- Products-wise Matrix -->
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div class="flex items-center justify-between mb-3">
-            <div>
-                <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-star text-amber-500 text-sm"></i>
-                    <span>Onix Focused 8 Google-priority Products Matrix</span>
-                </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Detailed breakdown for priority Google Cloud focus areas</p>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                <i class="fa-solid fa-table-cells text-blue-600 text-sm"></i>
+                <span>Products-wise Matrix</span>
+            </h3>
+
+            <!-- Scope Filter Dropdown -->
+            <div class="flex items-center space-x-2">
+                <label for="matrixScopeFilter" class="text-xs font-bold text-slate-600 whitespace-nowrap">Filter Scope:</label>
+                <select id="matrixScopeFilter" onchange="filterMatrixTable(this.value)" class="text-xs bg-slate-50 border border-slate-300 rounded-lg py-1.5 px-3 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="8_priority" selected>8 Priority Products (Default)</option>
+                    <option value="25_all">25 Products (All)</option>
+                    <option value="17_remaining">Remaining 17 Products</option>
+                </select>
             </div>
         </div>
 
@@ -178,7 +267,9 @@
                         <th class="py-2.5 px-3 text-center font-extrabold text-slate-900 w-[12%]">Total</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+
+                <!-- 1. Table 8 Priority -->
+                <tbody class="divide-y divide-slate-100 matrix-tbody" id="matrixBody-8">
                     {% for r in product_tables.table_a.rows %}
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="py-2 px-3 font-semibold text-slate-900 border-r border-slate-100 whitespace-nowrap">{{ r.product }}</td>
@@ -190,9 +281,9 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-                <tfoot>
+                <tfoot class="matrix-tfoot" id="matrixFoot-8">
                     <tr class="bg-slate-100/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
-                        <td class="py-2.5 px-3 border-r border-slate-200">Grand Total</td>
+                        <td class="py-2.5 px-3 border-r border-slate-200">Grand Total (8 Priority)</td>
                         <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-emerald-800">{{ product_tables.table_a.grand_total.t1 if product_tables.table_a.grand_total.t1 > 0 else '' }}</td>
                         <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-blue-800">{{ product_tables.table_a.grand_total.t2 if product_tables.table_a.grand_total.t2 > 0 else '' }}</td>
                         <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-amber-800">{{ product_tables.table_a.grand_total.t3 if product_tables.table_a.grand_total.t3 > 0 else '' }}</td>
@@ -200,30 +291,88 @@
                         <td class="py-2.5 px-3 text-center bg-slate-200/60 text-slate-900 font-extrabold">{{ product_tables.table_a.grand_total.total }}</td>
                     </tr>
                 </tfoot>
+
+                <!-- 2. Table 25 All -->
+                <tbody class="divide-y divide-slate-100 matrix-tbody hidden" id="matrixBody-25">
+                    {% for r in product_tables.table_all.rows %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="py-2 px-3 font-semibold text-slate-900 border-r border-slate-100 whitespace-nowrap">{{ r.product }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-emerald-700">{{ r.t1 if r.t1 > 0 else '' }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-blue-700">{{ r.t2 if r.t2 > 0 else '' }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-amber-700">{{ r.t3 if r.t3 > 0 else '' }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-purple-700">{{ r.t4 if r.t4 > 0 else '' }}</td>
+                        <td class="py-2 px-3 text-center font-extrabold text-slate-900 bg-slate-50/50">{{ r.total if r.total > 0 else '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="matrix-tfoot hidden" id="matrixFoot-25">
+                    <tr class="bg-slate-100/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
+                        <td class="py-2.5 px-3 border-r border-slate-200">Grand Total (25 Products)</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-emerald-800">{{ product_tables.table_all.grand_total.t1 if product_tables.table_all.grand_total.t1 > 0 else '' }}</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-blue-800">{{ product_tables.table_all.grand_total.t2 if product_tables.table_all.grand_total.t2 > 0 else '' }}</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-amber-800">{{ product_tables.table_all.grand_total.t3 if product_tables.table_all.grand_total.t3 > 0 else '' }}</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-purple-800">{{ product_tables.table_all.grand_total.t4 if product_tables.table_all.grand_total.t4 > 0 else '' }}</td>
+                        <td class="py-2.5 px-3 text-center bg-slate-200/60 text-slate-900 font-extrabold">{{ product_tables.table_all.grand_total.total }}</td>
+                    </tr>
+                </tfoot>
+
+                <!-- 3. Table 17 Remaining -->
+                <tbody class="divide-y divide-slate-100 matrix-tbody hidden" id="matrixBody-17">
+                    {% for r in product_tables.table_b.rows %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="py-2 px-3 font-semibold text-slate-900 border-r border-slate-100 whitespace-nowrap">{{ r.product }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-emerald-700">{{ r.t1 if r.t1 > 0 else '' }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-blue-700">{{ r.t2 if r.t2 > 0 else '' }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-amber-700">{{ r.t3 if r.t3 > 0 else '' }}</td>
+                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-purple-700">{{ r.t4 if r.t4 > 0 else '' }}</td>
+                        <td class="py-2 px-3 text-center font-extrabold text-slate-900 bg-slate-50/50">{{ r.total if r.total > 0 else '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="matrix-tfoot hidden" id="matrixFoot-17">
+                    <tr class="bg-slate-100/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
+                        <td class="py-2.5 px-3 border-r border-slate-200">Grand Total (17 Remaining)</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-emerald-800">{{ product_tables.table_b.grand_total.t1 if product_tables.table_b.grand_total.t1 > 0 else '' }}</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-blue-800">{{ product_tables.table_b.grand_total.t2 if product_tables.table_b.grand_total.t2 > 0 else '' }}</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-amber-800">{{ product_tables.table_b.grand_total.t3 if product_tables.table_b.grand_total.t3 > 0 else '' }}</td>
+                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-purple-800">{{ product_tables.table_b.grand_total.t4 if product_tables.table_b.grand_total.t4 > 0 else '' }}</td>
+                        <td class="py-2.5 px-3 text-center bg-slate-200/60 text-slate-900 font-extrabold">{{ product_tables.table_b.grand_total.total }}</td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
 
-    <!-- Manager Enablement Scorecard with Cluster Filter (Focus 8 Products) -->
+    <!-- Manager Enablement Scorecard -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div class="p-6 border-b border-slate-100 flex flex-col lg:flex-row justify-between lg:items-center gap-4">
             <div>
                 <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-star text-amber-500 text-sm"></i>
-                    <span>Manager Enablement Scorecard (8 Priority Products)</span>
+                    <i class="fa-solid fa-user-tie text-blue-600 text-sm"></i>
+                    <span>Manager Enablement Scorecard</span>
                 </h3>
-                <p class="text-xs text-slate-500">Team tier distribution under each engineering leader for priority products</p>
             </div>
             
-            <!-- Dynamic Cluster Filter Dropdown -->
-            <div class="flex items-center space-x-2">
-                <label for="managerClusterFilter" class="text-xs font-semibold text-slate-600 whitespace-nowrap">Filter Cluster:</label>
-                <select id="managerClusterFilter" onchange="filterManagerTable(this.value)" class="text-xs bg-slate-50 border border-slate-300 rounded-lg py-1.5 px-3 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option value="All">All Clusters (Show All)</option>
-                    {% for clus in charts.all_clusters %}
-                    <option value="{{ clus }}">{{ clus }}</option>
-                    {% endfor %}
-                </select>
+            <!-- Filters: Scope and Cluster -->
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="flex items-center space-x-2">
+                    <label for="managerScopeFilter" class="text-xs font-bold text-slate-600 whitespace-nowrap">Filter Scope:</label>
+                    <select id="managerScopeFilter" onchange="applyManagerFilters()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg py-1.5 px-3 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="8_priority" selected>8 Priority Products (Default)</option>
+                        <option value="25_all">25 Products (All)</option>
+                        <option value="17_remaining">Remaining 17 Products</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <label for="managerClusterFilter" class="text-xs font-bold text-slate-600 whitespace-nowrap">Filter Cluster:</label>
+                    <select id="managerClusterFilter" onchange="applyManagerFilters()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg py-1.5 px-3 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="All">All Clusters (Show All)</option>
+                        {% for clus in charts.all_clusters %}
+                        <option value="{{ clus }}">{{ clus }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -244,8 +393,45 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100" id="managerTableBody">
-                    {% for mgr in charts.manager_leaderboard %}
-                    <tr class="hover:bg-slate-50/80 transition-colors manager-row" data-cluster="{{ mgr.cluster }}">
+                    <!-- Scope 8 Priority -->
+                    {% for mgr in charts.charts_8.manager_leaderboard %}
+                    <tr class="hover:bg-slate-50/80 transition-colors manager-row" data-scope="8_priority" data-cluster="{{ mgr.cluster }}">
+                        <td class="py-3 px-4 font-bold text-slate-900">{{ mgr.manager }}</td>
+                        <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px]">{{ mgr.cluster }}</span></td>
+                        <td class="py-3 px-4 text-center font-semibold text-slate-800">{{ mgr.total }}</td>
+                        <td class="py-3 px-4 text-center font-bold text-emerald-600">{{ mgr.t1 }}</td>
+                        <td class="py-3 px-4 text-center font-semibold" style="color: #30496D;">{{ mgr.t2 }}</td>
+                        <td class="py-3 px-4 text-center text-amber-600">{{ mgr.t3 }}</td>
+                        <td class="py-3 px-4 text-center text-purple-600">{{ mgr.t4 }}</td>
+                        <td class="py-3 px-4 text-center font-bold" style="color: #f35959;">{{ mgr.zero_score }}</td>
+                        <td class="py-3 px-4 text-center font-bold text-rose-600">{{ mgr.t0 }}</td>
+                        <td class="py-3 px-4 text-right">
+                            <a href="{{ url_for('employees', manager=mgr.manager) }}" class="font-semibold text-xs hover:underline" style="color: #30496D;">View Team &rarr;</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- Scope 25 All -->
+                    {% for mgr in charts.charts_all.manager_leaderboard %}
+                    <tr class="hover:bg-slate-50/80 transition-colors manager-row hidden" data-scope="25_all" data-cluster="{{ mgr.cluster }}">
+                        <td class="py-3 px-4 font-bold text-slate-900">{{ mgr.manager }}</td>
+                        <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px]">{{ mgr.cluster }}</span></td>
+                        <td class="py-3 px-4 text-center font-semibold text-slate-800">{{ mgr.total }}</td>
+                        <td class="py-3 px-4 text-center font-bold text-emerald-600">{{ mgr.t1 }}</td>
+                        <td class="py-3 px-4 text-center font-semibold" style="color: #30496D;">{{ mgr.t2 }}</td>
+                        <td class="py-3 px-4 text-center text-amber-600">{{ mgr.t3 }}</td>
+                        <td class="py-3 px-4 text-center text-purple-600">{{ mgr.t4 }}</td>
+                        <td class="py-3 px-4 text-center font-bold" style="color: #f35959;">{{ mgr.zero_score }}</td>
+                        <td class="py-3 px-4 text-center font-bold text-rose-600">{{ mgr.t0 }}</td>
+                        <td class="py-3 px-4 text-right">
+                            <a href="{{ url_for('employees', manager=mgr.manager) }}" class="font-semibold text-xs hover:underline" style="color: #30496D;">View Team &rarr;</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- Scope 17 Remaining -->
+                    {% for mgr in charts.charts_17.manager_leaderboard %}
+                    <tr class="hover:bg-slate-50/80 transition-colors manager-row hidden" data-scope="17_remaining" data-cluster="{{ mgr.cluster }}">
                         <td class="py-3 px-4 font-bold text-slate-900">{{ mgr.manager }}</td>
                         <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px]">{{ mgr.cluster }}</span></td>
                         <td class="py-3 px-4 text-center font-semibold text-slate-800">{{ mgr.total }}</td>
@@ -267,13 +453,19 @@
 
 </div>
 
-<!-- Chart.js Script for Priority Cluster Progression Chart & Manager Filter -->
+<!-- Interactive Filtering and Chart.js Scripts -->
 <script>
-function filterManagerTable(selectedCluster) {
+// 1. Manager Table Filter
+function applyManagerFilters() {
+    const selectedScope = document.getElementById('managerScopeFilter').value;
+    const selectedCluster = document.getElementById('managerClusterFilter').value;
     const rows = document.querySelectorAll('.manager-row');
     rows.forEach(row => {
-        const cluster = row.getAttribute('data-cluster');
-        if (selectedCluster === 'All' || cluster === selectedCluster) {
+        const rowScope = row.getAttribute('data-scope');
+        const rowCluster = row.getAttribute('data-cluster');
+        const scopeMatch = (rowScope === selectedScope);
+        const clusterMatch = (selectedCluster === 'All' || rowCluster === selectedCluster);
+        if (scopeMatch && clusterMatch) {
             row.style.display = '';
         } else {
             row.style.display = 'none';
@@ -281,30 +473,69 @@ function filterManagerTable(selectedCluster) {
     });
 }
 
+// 2. Matrix Table Filter
+function filterMatrixTable(selectedScope) {
+    const bodies = {
+        '8_priority': document.getElementById('matrixBody-8'),
+        '25_all': document.getElementById('matrixBody-25'),
+        '17_remaining': document.getElementById('matrixBody-17')
+    };
+    const foots = {
+        '8_priority': document.getElementById('matrixFoot-8'),
+        '25_all': document.getElementById('matrixFoot-25'),
+        '17_remaining': document.getElementById('matrixFoot-17')
+    };
+
+    for (const key in bodies) {
+        if (key === selectedScope) {
+            bodies[key]?.classList.remove('hidden');
+            foots[key]?.classList.remove('hidden');
+        } else {
+            bodies[key]?.classList.add('hidden');
+            foots[key]?.classList.add('hidden');
+        }
+    }
+}
+
+// 3. Cluster Progression Chart
+let clusterChartInstance = null;
+const clusterDatasets = {
+    '8_priority': {{ charts.charts_8.cluster_dist | tojson }},
+    '25_all': {{ charts.charts_all.cluster_dist | tojson }},
+    '17_remaining': {{ charts.charts_17.cluster_dist | tojson }}
+};
+
+function updateClusterChart(selectedScope) {
+    if (!clusterChartInstance) return;
+    const data = clusterDatasets[selectedScope] || [];
+    clusterChartInstance.data.labels = data.map(c => c.cluster);
+    clusterChartInstance.data.datasets[0].data = data.map(c => c.t1);
+    clusterChartInstance.data.datasets[1].data = data.map(c => c.t2);
+    clusterChartInstance.data.datasets[2].data = data.map(c => c.t3);
+    clusterChartInstance.data.datasets[3].data = data.map(c => c.t4);
+    clusterChartInstance.data.datasets[4].data = data.map(c => c.zero_score);
+    clusterChartInstance.data.datasets[5].data = data.map(c => c.t0);
+    clusterChartInstance.update();
+}
+
 document.addEventListener("DOMContentLoaded", function() {
+    applyManagerFilters();
+
     const clusterCtx = document.getElementById('clusterChart');
     if (!clusterCtx) return;
 
-    const clusterData = {{ charts.cluster_dist | tojson }};
-    const labels = clusterData.map(c => c.cluster);
-    const t1Data = clusterData.map(c => c.t1);
-    const t2Data = clusterData.map(c => c.t2);
-    const t3Data = clusterData.map(c => c.t3);
-    const t4Data = clusterData.map(c => c.t4);
-    const zeroScoreData = clusterData.map(c => c.zero_score);
-    const t0Data = clusterData.map(c => c.t0);
-
-    new Chart(clusterCtx.getContext('2d'), {
+    const initialData = clusterDatasets['8_priority'] || [];
+    clusterChartInstance = new Chart(clusterCtx.getContext('2d'), {
         type: 'bar',
         data: {
-            labels: labels,
+            labels: initialData.map(c => c.cluster),
             datasets: [
-                { label: 'Tier 1 (49+ pts)', data: t1Data, backgroundColor: '#10B981', stack: 'Stack 0' },
-                { label: 'Tier 2 (35-49 pts)', data: t2Data, backgroundColor: '#30496D', stack: 'Stack 0' },
-                { label: 'Tier 3 (20-34 pts)', data: t3Data, backgroundColor: '#F59E0B', stack: 'Stack 0' },
-                { label: 'Tier 4 (1-19 pts)', data: t4Data, backgroundColor: '#8B5CF6', stack: 'Stack 0' },
-                { label: 'DRP IDs with 0 Score', data: zeroScoreData, backgroundColor: '#f35959', stack: 'Stack 0' },
-                { label: 'DRP ID Not Created', data: t0Data, backgroundColor: '#DC2626', stack: 'Stack 0' }
+                { label: 'Tier 1 (49+ pts)', data: initialData.map(c => c.t1), backgroundColor: '#10B981', stack: 'Stack 0' },
+                { label: 'Tier 2 (35-49 pts)', data: initialData.map(c => c.t2), backgroundColor: '#30496D', stack: 'Stack 0' },
+                { label: 'Tier 3 (20-34 pts)', data: initialData.map(c => c.t3), backgroundColor: '#F59E0B', stack: 'Stack 0' },
+                { label: 'Tier 4 (1-19 pts)', data: initialData.map(c => c.t4), backgroundColor: '#8B5CF6', stack: 'Stack 0' },
+                { label: 'DRP IDs with 0 Score', data: initialData.map(c => c.zero_score), backgroundColor: '#f35959', stack: 'Stack 0' },
+                { label: 'DRP ID Not Created', data: initialData.map(c => c.t0), backgroundColor: '#DC2626', stack: 'Stack 0' }
             ]
         },
         options: {
