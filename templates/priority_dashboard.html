@@ -121,15 +121,9 @@
                 <p class="text-[11px] font-bold text-slate-500 mt-1">Total active dataset</p>
             </div>
         </div>
-        <div class="mt-2.5 pt-2 border-t border-rose-100 flex flex-col space-y-0.5 text-[10px] font-bold">
-            <div class="flex items-center text-emerald-700">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                <span>DRP ID Created: {{ c_kpi.drp_created_count }}</span>
-            </div>
-            <div class="flex items-center text-rose-600">
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>
-                <span>DRP ID Not Created: {{ c_kpi.drp_not_created_count }}</span>
-            </div>
+        <div class="mt-2.5 pt-2 border-t border-rose-100 flex items-center justify-between text-[11px]">
+            <span class="text-slate-600 font-semibold">Total Scope</span>
+            <span class="font-black text-slate-800">100% Workforce</span>
         </div>
     </div>
 
@@ -167,13 +161,13 @@
     <!-- 1. 25 Product Tier Compositions -->
     <div class="space-y-3">
         <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-center space-x-2">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-100 text-blue-800 uppercase tracking-wider">
-                    <i class="fa-solid fa-layer-group text-[10px] mr-1"></i> 25 Products
+            <div class="flex items-center">
+                <span class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-black bg-blue-100 text-blue-900 uppercase tracking-wider inline-flex items-center">
+                    <i class="fa-solid fa-layer-group text-xs mr-2 text-blue-700"></i>
+                    <span>25 Product Tier Compositions</span>
                 </span>
-                <h3 class="text-base font-extrabold text-slate-900 tracking-tight">25 Product Tier Compositions</h3>
             </div>
-            <p class="text-[11px] text-slate-500 mt-1 font-medium leading-relaxed">
+            <p class="text-[11px] text-slate-500 mt-2 font-medium leading-relaxed">
                 (1) BigQuery, (2) Dataflow, (3) Cloud SQL, (4) Looker, (5) Dataproc, (6) AlloyDB for PostgreSQL, (7) Oracle, (8) Spanner, (9) Cloud Security, (10) Security Command Center, (11) Security Operations, (12) Google Threat Intelligence, (13) Google Compute Engine, (14) Google Cloud Networking, (15) SAP on Google Cloud, (16) Google Cloud VMware Engine, (17) Google Distributed Cloud, (18) Workspace, (19) Google Kubernetes Engine, (20) Apigee API Management, (21) Cloud Run, (22) Gemini Enterprise Agent Platform, (23) AI Applications, (24) Gemini Enterprise, (25) Gemini Enterprise for Customer Experience
             </p>
         </div>
@@ -183,13 +177,13 @@
     <!-- 2. 8 Product Tier Compositions -->
     <div class="space-y-3">
         <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-center space-x-2">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-800 uppercase tracking-wider">
-                    <i class="fa-solid fa-star text-[10px] mr-1"></i> 8 Priority
+            <div class="flex items-center">
+                <span class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-black bg-amber-100 text-amber-900 uppercase tracking-wider inline-flex items-center">
+                    <i class="fa-solid fa-star text-xs mr-2 text-amber-600"></i>
+                    <span>8 Product Tier Compositions</span>
                 </span>
-                <h3 class="text-base font-extrabold text-slate-900 tracking-tight">8 Product Tier Compositions</h3>
             </div>
-            <p class="text-[11px] text-slate-500 mt-1 font-medium leading-relaxed">
+            <p class="text-[11px] text-slate-500 mt-2 font-medium leading-relaxed">
                 (1) BigQuery, (2) Dataflow, (3) Cloud SQL, (4) Looker, (5) Dataproc, (6) AlloyDB for PostgreSQL, (7) Oracle, (8) Spanner
             </p>
         </div>
@@ -199,13 +193,13 @@
     <!-- 3. Remaining 17th Product Compositions -->
     <div class="space-y-3">
         <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-center space-x-2">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-100 text-purple-800 uppercase tracking-wider">
-                    <i class="fa-solid fa-cubes text-[10px] mr-1"></i> 17 Remaining
+            <div class="flex items-center">
+                <span class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-black bg-purple-100 text-purple-900 uppercase tracking-wider inline-flex items-center">
+                    <i class="fa-solid fa-cubes text-xs mr-2 text-purple-600"></i>
+                    <span>Remaining 17th product Compositions</span>
                 </span>
-                <h3 class="text-base font-extrabold text-slate-900 tracking-tight">Remaining 17th product Compositions</h3>
             </div>
-            <p class="text-[11px] text-slate-500 mt-1 font-medium leading-relaxed">
+            <p class="text-[11px] text-slate-500 mt-2 font-medium leading-relaxed">
                 (1) Cloud Security, (2) Security Command Center, (3) Security Operations, (4) Google Threat Intelligence, (5) Google Compute Engine, (6) Google Cloud Networking, (7) SAP on Google Cloud, (8) Google Cloud VMware Engine, (9) Google Distributed Cloud, (10) Workspace, (11) Google Kubernetes Engine, (12) Apigee API Management, (13) Cloud Run, (14) Gemini Enterprise Agent Platform, (15) AI Applications, (16) Gemini Enterprise, (17) Gemini Enterprise for Customer Experience
             </p>
         </div>
@@ -216,7 +210,7 @@
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
             <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                <i class="fa-solid fa-star text-amber-500 text-sm"></i>
+                <i class="fa-solid fa-chart-column text-amber-500 text-sm"></i>
                 <span>Cluster Progression</span>
             </h3>
 
@@ -392,10 +386,11 @@
                         <th class="py-3 px-4 text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100" id="managerTableBody">
-                    <!-- Scope 8 Priority -->
+
+                <!-- 1. Scope 8 Priority Body -->
+                <tbody class="divide-y divide-slate-100 manager-tbody" id="managerBody-8">
                     {% for mgr in charts.charts_8.manager_leaderboard %}
-                    <tr class="hover:bg-slate-50/80 transition-colors manager-row" data-scope="8_priority" data-cluster="{{ mgr.cluster }}">
+                    <tr class="hover:bg-slate-50/80 transition-colors manager-row" data-cluster="{{ mgr.cluster }}">
                         <td class="py-3 px-4 font-bold text-slate-900">{{ mgr.manager }}</td>
                         <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px]">{{ mgr.cluster }}</span></td>
                         <td class="py-3 px-4 text-center font-semibold text-slate-800">{{ mgr.total }}</td>
@@ -410,10 +405,12 @@
                         </td>
                     </tr>
                     {% endfor %}
+                </tbody>
 
-                    <!-- Scope 25 All -->
+                <!-- 2. Scope 25 All Body -->
+                <tbody class="divide-y divide-slate-100 manager-tbody hidden" id="managerBody-25">
                     {% for mgr in charts.charts_all.manager_leaderboard %}
-                    <tr class="hover:bg-slate-50/80 transition-colors manager-row hidden" data-scope="25_all" data-cluster="{{ mgr.cluster }}">
+                    <tr class="hover:bg-slate-50/80 transition-colors manager-row" data-cluster="{{ mgr.cluster }}">
                         <td class="py-3 px-4 font-bold text-slate-900">{{ mgr.manager }}</td>
                         <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px]">{{ mgr.cluster }}</span></td>
                         <td class="py-3 px-4 text-center font-semibold text-slate-800">{{ mgr.total }}</td>
@@ -428,10 +425,12 @@
                         </td>
                     </tr>
                     {% endfor %}
+                </tbody>
 
-                    <!-- Scope 17 Remaining -->
+                <!-- 3. Scope 17 Remaining Body -->
+                <tbody class="divide-y divide-slate-100 manager-tbody hidden" id="managerBody-17">
                     {% for mgr in charts.charts_17.manager_leaderboard %}
-                    <tr class="hover:bg-slate-50/80 transition-colors manager-row hidden" data-scope="17_remaining" data-cluster="{{ mgr.cluster }}">
+                    <tr class="hover:bg-slate-50/80 transition-colors manager-row" data-cluster="{{ mgr.cluster }}">
                         <td class="py-3 px-4 font-bold text-slate-900">{{ mgr.manager }}</td>
                         <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px]">{{ mgr.cluster }}</span></td>
                         <td class="py-3 px-4 text-center font-semibold text-slate-800">{{ mgr.total }}</td>
@@ -455,22 +454,38 @@
 
 <!-- Interactive Filtering and Chart.js Scripts -->
 <script>
-// 1. Manager Table Filter
+// 1. Manager Table Filter (Handles Scope and Cluster concurrently)
 function applyManagerFilters() {
     const selectedScope = document.getElementById('managerScopeFilter').value;
     const selectedCluster = document.getElementById('managerClusterFilter').value;
-    const rows = document.querySelectorAll('.manager-row');
-    rows.forEach(row => {
-        const rowScope = row.getAttribute('data-scope');
-        const rowCluster = row.getAttribute('data-cluster');
-        const scopeMatch = (rowScope === selectedScope);
-        const clusterMatch = (selectedCluster === 'All' || rowCluster === selectedCluster);
-        if (scopeMatch && clusterMatch) {
-            row.style.display = '';
+
+    const bodies = {
+        '8_priority': document.getElementById('managerBody-8'),
+        '25_all': document.getElementById('managerBody-25'),
+        '17_remaining': document.getElementById('managerBody-17')
+    };
+
+    let activeBody = null;
+    for (const key in bodies) {
+        if (key === selectedScope) {
+            bodies[key]?.classList.remove('hidden');
+            activeBody = bodies[key];
         } else {
-            row.style.display = 'none';
+            bodies[key]?.classList.add('hidden');
         }
-    });
+    }
+
+    if (activeBody) {
+        const rows = activeBody.querySelectorAll('.manager-row');
+        rows.forEach(row => {
+            const cluster = row.getAttribute('data-cluster');
+            if (selectedCluster === 'All' || cluster === selectedCluster) {
+                row.classList.remove('hidden');
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+    }
 }
 
 // 2. Matrix Table Filter
