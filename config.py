@@ -9,6 +9,7 @@ DRP_PORTAL_URL = "https://delivery-readiness-portal.cloud.google/app/login"
 CREDLY_URL = "https://www.credly.com/users/sign_in"
 DRP_MAPPING_SHEET_URL = "https://docs.google.com/spreadsheets/d/18dCDJX27QVROXPPNghIC5F3VxzJ8cawXtOf3xgKtkAI/edit?gid=28087814#gid=28087814"
 DRP_ATTRIBUTION_URL = DRP_MAPPING_SHEET_URL
+DRP_GUIDE_URL = "https://docs.google.com/document/d/16XkeOLyI25xcqezGB8SEQWF3bB7ocCw4SY7gPw9Ax9A/edit?usp=sharing"
 
 TIER_DEFINITIONS = {
     "Tier 1": {"min": 49, "max": 999, "label": "Tier 1 (Mastery - 49+ pts)", "badge_color": "emerald", "target": "Goal Reached"},

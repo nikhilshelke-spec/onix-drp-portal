@@ -942,7 +942,8 @@ class DRPService:
         if cluster and cluster != 'All':
             filtered = filtered[filtered['cluster'] == cluster]
         if product and product != 'All':
-            filtered = filtered[filtered['product'] == product]
+            cat_series = filtered['product'].apply(self.normalize_product_category)
+            filtered = filtered[(filtered['product'] == product) | (cat_series == product)]
         if search:
             s = search.lower().strip()
             filtered = filtered[
@@ -959,10 +960,13 @@ class DRPService:
         target_df = base_df if base_df is not None else self.df
         if target_df is None or len(target_df) == 0:
             return {'managers': [], 'clusters': [], 'products': [], 'tiers': []}
+        raw_prods = [p for p in target_df['product'].dropna().unique().tolist() if p and p != 'Not Specified']
+        norm_prods = [p for p in target_df['product'].apply(self.normalize_product_category).unique().tolist() if p and p not in ['Not Specified', 'Other products']]
+        all_unique_prods = sorted(list(set(raw_prods + norm_prods)))
         return {
             'managers': sorted([m for m in target_df['manager'].dropna().unique().tolist() if m and m != 'Unassigned']),
             'clusters': sorted([c for c in target_df['cluster'].dropna().unique().tolist() if c]),
-            'products': sorted([p for p in target_df['product'].dropna().unique().tolist() if p and p != 'Not Specified']),
+            'products': all_unique_prods,
             'tiers': ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'DRP IDs with 0 Score', 'DRP ID Not Created', 'Exempted']
         }
 
@@ -981,5 +985,95 @@ class DRPService:
                     clean_rec[k] = v
             return clean_rec
         return None
+
+    def get_product_groups(self):
+        groups = [
+            {
+                'id': 'db_migration',
+                'name': 'Database Migration & Transformation',
+                'icon': 'fa-solid fa-database',
+                'focus': 'Moving away from legacy licensing and modernizing operational data stores for high availability.',
+                'products': [
+                    {'name': 'AlloyDB for PostgreSQL', 'desc': 'High-performance, AI-ready relational database'},
+                    {'name': 'Spanner', 'desc': 'Globally scalable, highly available relational database'},
+                    {'name': 'Cloud SQL', 'desc': 'Managed MySQL, PostgreSQL, and SQL Server'},
+                    {'name': 'Oracle', 'desc': 'Managing legacy enterprise workloads or migration sources'}
+                ]
+            },
+            {
+                'id': 'data_analytics',
+                'name': 'Data & Analytics Modernization',
+                'icon': 'fa-solid fa-chart-pie',
+                'focus': 'Breaking down data silos and building scalable data platforms for real-time business intelligence.',
+                'products': [
+                    {'name': 'BigQuery', 'desc': 'Enterprise data warehouse for large-scale analytics'},
+                    {'name': 'Looker', 'desc': 'Business intelligence and data visualization'},
+                    {'name': 'Dataflow', 'desc': 'Real-time streaming and batch data processing'},
+                    {'name': 'Dataproc', 'desc': 'Managed Hadoop/Spark for big data processing'}
+                ]
+            },
+            {
+                'id': 'ai_innovation',
+                'name': 'Enterprise AI & Innovation',
+                'icon': 'fa-solid fa-wand-magic-sparkles',
+                'focus': 'Leveraging generative AI to automate workflows, build intelligent agents, and transform customer experiences.',
+                'products': [
+                    {'name': 'Gemini Enterprise Agent Platform', 'desc': 'Building custom AI agents'},
+                    {'name': 'AI Applications', 'desc': 'Ready-to-use AI models and APIs'},
+                    {'name': 'Gemini Enterprise', 'desc': 'Generative AI for enterprise productivity'},
+                    {'name': 'Gemini Enterprise for Customer Experience', 'desc': 'AI-driven support and engagement'}
+                ]
+            },
+            {
+                'id': 'core_infra',
+                'name': 'Core Infrastructure & Workload Migration',
+                'icon': 'fa-solid fa-server',
+                'focus': 'Lifting, shifting, and optimizing traditional data centers and heavy enterprise workloads to the cloud.',
+                'products': [
+                    {'name': 'Google Compute Engine', 'desc': 'Scalable virtual machines and core compute'},
+                    {'name': 'Google Cloud VMware Engine', 'desc': 'Seamless migration for existing VMware environments'},
+                    {'name': 'SAP on Google Cloud', 'desc': 'Hosting and optimizing critical SAP ERP workloads'},
+                    {'name': 'Google Cloud Networking', 'desc': 'Global, secure network infrastructure'},
+                    {'name': 'Google Distributed Cloud', 'desc': 'Hybrid and edge computing solutions'}
+                ]
+            },
+            {
+                'id': 'app_mod',
+                'name': 'Application Modernization',
+                'icon': 'fa-solid fa-cubes-stacked',
+                'focus': 'Re-architecting applications using cloud-native technologies to improve speed, scalability, and developer agility.',
+                'products': [
+                    {'name': 'Google Kubernetes Engine (GKE)', 'desc': 'Containerized application management'},
+                    {'name': 'Cloud Run', 'desc': 'Serverless application deployment'},
+                    {'name': 'Apigee API Management', 'desc': 'Securely managing and monetizing APIs'}
+                ]
+            },
+            {
+                'id': 'sec_risk',
+                'name': 'Enterprise Security & Risk Management',
+                'icon': 'fa-solid fa-shield-halved',
+                'focus': 'Securing cloud environments, modernizing threat detection, and maintaining regulatory compliance.',
+                'products': [
+                    {'name': 'Cloud Security', 'desc': 'Foundational cloud identity and access management'},
+                    {'name': 'Security Command Center', 'desc': 'Centralized vulnerability and posture management'},
+                    {'name': 'Security Operations', 'desc': 'Modern SIEM/SOAR for incident response'},
+                    {'name': 'Google Threat Intelligence', 'desc': 'Proactive threat hunting and global intelligence'}
+                ]
+            },
+            {
+                'id': 'workforce',
+                'name': 'Workforce Collaboration',
+                'icon': 'fa-solid fa-users-gear',
+                'focus': 'Modernizing how distributed teams communicate and create.',
+                'products': [
+                    {'name': 'Workspace', 'desc': 'Cloud-native productivity suite: Gmail, Docs, Drive, Meet'}
+                ]
+            }
+        ]
+        return {
+            'all': groups,
+            'priority_8': [groups[0], groups[1]],
+            'remaining_17': [groups[2], groups[3], groups[4], groups[5], groups[6]]
+        }
 
 drp_service = DRPService()

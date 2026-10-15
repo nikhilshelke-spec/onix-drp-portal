@@ -124,6 +124,109 @@
 </div>
 {% endmacro %}
 
+{% macro render_classification_table(group_list) %}
+<div class="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-left text-xs border-collapse">
+        <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+                {% for g in group_list %}
+                <th class="p-3 border-r border-slate-200 align-top min-w-[210px] last:border-r-0">
+                    <div class="flex items-center space-x-1.5 text-slate-900 font-extrabold text-[12px]">
+                        <i class="{{ g.icon }} text-blue-600 text-[11px]"></i>
+                        <span>{{ g.name }}</span>
+                    </div>
+                    {% if g.focus %}
+                    <p class="text-[10px] font-medium text-slate-500 mt-1 leading-snug">{{ g.focus }}</p>
+                    {% endif %}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody class="align-top divide-x divide-slate-200">
+            <tr>
+                {% for g in group_list %}
+                <td class="p-3 border-r border-slate-200 last:border-r-0 space-y-2.5">
+                    {% for p in g.products %}
+                    <div>
+                        <div class="font-bold text-slate-900 text-[11px] flex items-start">
+                            <span class="text-blue-500 mr-1.5 shrink-0">•</span>
+                            <span>{{ p.name }}</span>
+                        </div>
+                        {% if p.desc %}
+                        <div class="text-[10px] text-slate-500 pl-3 leading-snug mt-0.5">{{ p.desc }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+{% macro render_matrix_rows(rows) %}
+    {% for r in rows %}
+    <tr class="hover:bg-slate-50 transition-colors">
+        <td class="py-2 px-3 font-semibold text-slate-900 border-r border-slate-100 whitespace-nowrap">{{ r.product }}</td>
+        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-emerald-700">
+            {% if r.t1 > 0 %}
+            <a href="{{ url_for('employees', tier='Tier 1', product=r.product) }}" class="hover:underline font-bold text-emerald-700 hover:text-emerald-900 block" title="View {{ r.product }} Tier 1 in Hub">{{ r.t1 }}</a>
+            {% endif %}
+        </td>
+        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-blue-700">
+            {% if r.t2 > 0 %}
+            <a href="{{ url_for('employees', tier='Tier 2', product=r.product) }}" class="hover:underline font-bold text-blue-700 hover:text-blue-900 block" title="View {{ r.product }} Tier 2 in Hub">{{ r.t2 }}</a>
+            {% endif %}
+        </td>
+        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-amber-700">
+            {% if r.t3 > 0 %}
+            <a href="{{ url_for('employees', tier='Tier 3', product=r.product) }}" class="hover:underline font-bold text-amber-700 hover:text-amber-900 block" title="View {{ r.product }} Tier 3 in Hub">{{ r.t3 }}</a>
+            {% endif %}
+        </td>
+        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-purple-700">
+            {% if r.t4 > 0 %}
+            <a href="{{ url_for('employees', tier='Tier 4', product=r.product) }}" class="hover:underline font-bold text-purple-700 hover:text-purple-900 block" title="View {{ r.product }} Tier 4 in Hub">{{ r.t4 }}</a>
+            {% endif %}
+        </td>
+        <td class="py-2 px-3 text-center font-extrabold text-slate-900 bg-slate-50/50">
+            {% if r.total > 0 %}
+            <a href="{{ url_for('employees', tier='All', product=r.product) }}" class="hover:underline font-extrabold text-slate-900 hover:text-blue-600 block" title="View All {{ r.product }} in Hub">{{ r.total }}</a>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+{% endmacro %}
+
+{% macro render_matrix_footer(gt, label) %}
+    <tr class="bg-slate-100/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
+        <td class="py-2.5 px-3 border-r border-slate-200">{{ label }}</td>
+        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-emerald-800">
+            {% if gt.t1 > 0 %}
+            <a href="{{ url_for('employees', tier='Tier 1') }}" class="hover:underline font-extrabold block" title="View All Tier 1">{{ gt.t1 }}</a>
+            {% endif %}
+        </td>
+        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-blue-800">
+            {% if gt.t2 > 0 %}
+            <a href="{{ url_for('employees', tier='Tier 2') }}" class="hover:underline font-extrabold block" title="View All Tier 2">{{ gt.t2 }}</a>
+            {% endif %}
+        </td>
+        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-amber-800">
+            {% if gt.t3 > 0 %}
+            <a href="{{ url_for('employees', tier='Tier 3') }}" class="hover:underline font-extrabold block" title="View All Tier 3">{{ gt.t3 }}</a>
+            {% endif %}
+        </td>
+        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-purple-800">
+            {% if gt.t4 > 0 %}
+            <a href="{{ url_for('employees', tier='Tier 4') }}" class="hover:underline font-extrabold block" title="View All Tier 4">{{ gt.t4 }}</a>
+            {% endif %}
+        </td>
+        <td class="py-2.5 px-3 text-center bg-slate-200/60 text-slate-900 font-extrabold">
+            <a href="{{ url_for('employees', tier='All') }}" class="hover:underline font-extrabold block" title="View All Employees">{{ gt.total }}</a>
+        </td>
+    </tr>
+{% endmacro %}
+
 {% block content %}
 <div class="space-y-6">
 
@@ -161,9 +264,7 @@
                     <span>25 Product Tier Compositions</span>
                 </span>
             </div>
-            <p class="text-[11px] text-slate-500 mt-2 font-medium leading-relaxed">
-                (1) BigQuery, (2) Dataflow, (3) Cloud SQL, (4) Looker, (5) Dataproc, (6) AlloyDB for PostgreSQL, (7) Oracle, (8) Spanner, (9) Cloud Security, (10) Security Command Center, (11) Security Operations, (12) Google Threat Intelligence, (13) Google Compute Engine, (14) Google Cloud Networking, (15) SAP on Google Cloud, (16) Google Cloud VMware Engine, (17) Google Distributed Cloud, (18) Workspace, (19) Google Kubernetes Engine, (20) Apigee API Management, (21) Cloud Run, (22) Gemini Enterprise Agent Platform, (23) AI Applications, (24) Gemini Enterprise, (25) Gemini Enterprise for Customer Experience
-            </p>
+            {{ render_classification_table(product_groups.all) }}
         </div>
         {{ render_composition_cards(kpis.kpis_25) }}
     </div>
@@ -177,9 +278,7 @@
                     <span>8 Product Tier Compositions</span>
                 </span>
             </div>
-            <p class="text-[11px] text-slate-500 mt-2 font-medium leading-relaxed">
-                (1) BigQuery, (2) Dataflow, (3) Cloud SQL, (4) Looker, (5) Dataproc, (6) AlloyDB for PostgreSQL, (7) Oracle, (8) Spanner
-            </p>
+            {{ render_classification_table(product_groups.priority_8) }}
         </div>
         {{ render_composition_cards(kpis.kpis_8) }}
     </div>
@@ -193,9 +292,7 @@
                     <span>Remaining 17th product Compositions</span>
                 </span>
             </div>
-            <p class="text-[11px] text-slate-500 mt-2 font-medium leading-relaxed">
-                (1) Cloud Security, (2) Security Command Center, (3) Security Operations, (4) Google Threat Intelligence, (5) Google Compute Engine, (6) Google Cloud Networking, (7) SAP on Google Cloud, (8) Google Cloud VMware Engine, (9) Google Distributed Cloud, (10) Workspace, (11) Google Kubernetes Engine, (12) Apigee API Management, (13) Cloud Run, (14) Gemini Enterprise Agent Platform, (15) AI Applications, (16) Gemini Enterprise, (17) Gemini Enterprise for Customer Experience
-            </p>
+            {{ render_classification_table(product_groups.remaining_17) }}
         </div>
         {{ render_composition_cards(kpis.kpis_17) }}
     </div>
@@ -258,74 +355,26 @@
 
                 <!-- 1. Table 8 Priority -->
                 <tbody class="divide-y divide-slate-100 matrix-tbody" id="matrixBody-8">
-                    {% for r in product_tables.table_a.rows %}
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="py-2 px-3 font-semibold text-slate-900 border-r border-slate-100 whitespace-nowrap">{{ r.product }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-emerald-700">{{ r.t1 if r.t1 > 0 else '' }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-blue-700">{{ r.t2 if r.t2 > 0 else '' }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-amber-700">{{ r.t3 if r.t3 > 0 else '' }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-purple-700">{{ r.t4 if r.t4 > 0 else '' }}</td>
-                        <td class="py-2 px-3 text-center font-extrabold text-slate-900 bg-slate-50/50">{{ r.total if r.total > 0 else '' }}</td>
-                    </tr>
-                    {% endfor %}
+                    {{ render_matrix_rows(product_tables.table_a.rows) }}
                 </tbody>
                 <tfoot class="matrix-tfoot" id="matrixFoot-8">
-                    <tr class="bg-slate-100/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
-                        <td class="py-2.5 px-3 border-r border-slate-200">Grand Total (8 Priority)</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-emerald-800">{{ product_tables.table_a.grand_total.t1 if product_tables.table_a.grand_total.t1 > 0 else '' }}</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-blue-800">{{ product_tables.table_a.grand_total.t2 if product_tables.table_a.grand_total.t2 > 0 else '' }}</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-amber-800">{{ product_tables.table_a.grand_total.t3 if product_tables.table_a.grand_total.t3 > 0 else '' }}</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-purple-800">{{ product_tables.table_a.grand_total.t4 if product_tables.table_a.grand_total.t4 > 0 else '' }}</td>
-                        <td class="py-2.5 px-3 text-center bg-slate-200/60 text-slate-900 font-extrabold">{{ product_tables.table_a.grand_total.total }}</td>
-                    </tr>
+                    {{ render_matrix_footer(product_tables.table_a.grand_total, 'Grand Total (8 Priority)') }}
                 </tfoot>
 
                 <!-- 2. Table 25 All -->
                 <tbody class="divide-y divide-slate-100 matrix-tbody hidden" id="matrixBody-25">
-                    {% for r in product_tables.table_all.rows %}
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="py-2 px-3 font-semibold text-slate-900 border-r border-slate-100 whitespace-nowrap">{{ r.product }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-emerald-700">{{ r.t1 if r.t1 > 0 else '' }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-blue-700">{{ r.t2 if r.t2 > 0 else '' }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-amber-700">{{ r.t3 if r.t3 > 0 else '' }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-purple-700">{{ r.t4 if r.t4 > 0 else '' }}</td>
-                        <td class="py-2 px-3 text-center font-extrabold text-slate-900 bg-slate-50/50">{{ r.total if r.total > 0 else '' }}</td>
-                    </tr>
-                    {% endfor %}
+                    {{ render_matrix_rows(product_tables.table_all.rows) }}
                 </tbody>
                 <tfoot class="matrix-tfoot hidden" id="matrixFoot-25">
-                    <tr class="bg-slate-100/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
-                        <td class="py-2.5 px-3 border-r border-slate-200">Grand Total (25 Products)</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-emerald-800">{{ product_tables.table_all.grand_total.t1 if product_tables.table_all.grand_total.t1 > 0 else '' }}</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-blue-800">{{ product_tables.table_all.grand_total.t2 if product_tables.table_all.grand_total.t2 > 0 else '' }}</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-amber-800">{{ product_tables.table_all.grand_total.t3 if product_tables.table_all.grand_total.t3 > 0 else '' }}</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-purple-800">{{ product_tables.table_all.grand_total.t4 if product_tables.table_all.grand_total.t4 > 0 else '' }}</td>
-                        <td class="py-2.5 px-3 text-center bg-slate-200/60 text-slate-900 font-extrabold">{{ product_tables.table_all.grand_total.total }}</td>
-                    </tr>
+                    {{ render_matrix_footer(product_tables.table_all.grand_total, 'Grand Total (25 Products)') }}
                 </tfoot>
 
                 <!-- 3. Table 17 Remaining -->
                 <tbody class="divide-y divide-slate-100 matrix-tbody hidden" id="matrixBody-17">
-                    {% for r in product_tables.table_b.rows %}
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="py-2 px-3 font-semibold text-slate-900 border-r border-slate-100 whitespace-nowrap">{{ r.product }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-emerald-700">{{ r.t1 if r.t1 > 0 else '' }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-blue-700">{{ r.t2 if r.t2 > 0 else '' }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-amber-700">{{ r.t3 if r.t3 > 0 else '' }}</td>
-                        <td class="py-2 px-2.5 text-center border-r border-slate-100 font-semibold text-purple-700">{{ r.t4 if r.t4 > 0 else '' }}</td>
-                        <td class="py-2 px-3 text-center font-extrabold text-slate-900 bg-slate-50/50">{{ r.total if r.total > 0 else '' }}</td>
-                    </tr>
-                    {% endfor %}
+                    {{ render_matrix_rows(product_tables.table_b.rows) }}
                 </tbody>
                 <tfoot class="matrix-tfoot hidden" id="matrixFoot-17">
-                    <tr class="bg-slate-100/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
-                        <td class="py-2.5 px-3 border-r border-slate-200">Grand Total (17 Remaining)</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-emerald-800">{{ product_tables.table_b.grand_total.t1 if product_tables.table_b.grand_total.t1 > 0 else '' }}</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-blue-800">{{ product_tables.table_b.grand_total.t2 if product_tables.table_b.grand_total.t2 > 0 else '' }}</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-amber-800">{{ product_tables.table_b.grand_total.t3 if product_tables.table_b.grand_total.t3 > 0 else '' }}</td>
-                        <td class="py-2.5 px-2.5 text-center border-r border-slate-200 text-purple-800">{{ product_tables.table_b.grand_total.t4 if product_tables.table_b.grand_total.t4 > 0 else '' }}</td>
-                        <td class="py-2.5 px-3 text-center bg-slate-200/60 text-slate-900 font-extrabold">{{ product_tables.table_b.grand_total.total }}</td>
-                    </tr>
+                    {{ render_matrix_footer(product_tables.table_b.grand_total, 'Grand Total (17 Remaining)') }}
                 </tfoot>
             </table>
         </div>

@@ -5,7 +5,7 @@ import uuid
 import secrets
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file, Response, session, flash
 import pandas as pd
-from config import GOOGLE_SHEET_URL, DRP_PORTAL_URL, CREDLY_URL, DRP_MAPPING_SHEET_URL, DRP_ATTRIBUTION_URL, TIER_DEFINITIONS
+from config import GOOGLE_SHEET_URL, DRP_PORTAL_URL, CREDLY_URL, DRP_MAPPING_SHEET_URL, DRP_ATTRIBUTION_URL, DRP_GUIDE_URL, TIER_DEFINITIONS
 from drp_service import drp_service
 from email_service import email_service
 from access_manager import (
@@ -76,6 +76,7 @@ def inject_global_vars():
         'credly_url': CREDLY_URL,
         'drp_mapping_sheet_url': DRP_MAPPING_SHEET_URL,
         'drp_attribution_url': DRP_ATTRIBUTION_URL,
+        'drp_guide_url': DRP_GUIDE_URL,
         'tier_definitions': TIER_DEFINITIONS,
         'current_role': role,
         'is_editor': (role == 'owner' and is_owner) or (role == 'editor'),
@@ -186,7 +187,8 @@ def priority_dashboard():
     kpis = drp_service.get_priority_kpis()
     charts = drp_service.get_priority_chart_data()
     product_tables = drp_service.get_product_tables()
-    return render_template('priority_dashboard.html', kpis=kpis, charts=charts, product_tables=product_tables, page='priority_dashboard')
+    product_groups = drp_service.get_product_groups()
+    return render_template('priority_dashboard.html', kpis=kpis, charts=charts, product_tables=product_tables, product_groups=product_groups, page='priority_dashboard')
 
 # ─── EMPLOYEE HUB & VERIFICATION ─────────────────────────────────────────────
 

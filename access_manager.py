@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 import secrets
 from datetime import datetime
@@ -119,7 +119,7 @@ def validate_leader_token(token):
         return info.get("email")
     return None
 
-# ─── EMPLOYEE (Directory & Action Plan) ───────────────────────────────────────
+# ─── EMPLOYEE (Directory & Goal) ──────────────────────────────────────────────
 
 def validate_employee_token(token):
     return token == get_employee_token()

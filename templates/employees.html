@@ -170,6 +170,10 @@
                     <i class="fa-solid fa-table"></i>
                     <span>DRP Attribution</span>
                 </a>
+                <a href="{{ drp_guide_url }}" target="_blank" class="px-3 py-1.5 bg-blue-500 text-white hover:bg-blue-600 font-bold rounded-lg transition-colors flex items-center space-x-1.5" title="DRP ID creation end to end guide">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span>DRP ID Guide</span>
+                </a>
             </div>
         </div>
     </div>
@@ -232,19 +236,23 @@
                     {% for p in filters.products %}
                     <option value="{{ p }}" {% if selected_product == p %}selected{% endif %}>{{ p }}</option>
                     {% endfor %}
+                    {% if selected_product and selected_product != 'All' and selected_product not in filters.products %}
+                    <option value="{{ selected_product }}" selected>{{ selected_product }}</option>
+                    {% endif %}
                 </select>
             </div>
 
             <!-- Search & Actions -->
             <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Search Team</label>
-                <div class="flex space-x-1">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Search & Apply</label>
+                <div class="flex items-center space-x-1.5">
                     <input type="text" name="search" value="{{ search_query }}" placeholder="Name, ID, Email..." class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-blue-500">
-                    <button type="submit" class="px-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
-                        <i class="fa-solid fa-magnifying-glass"></i>
+                    <button type="submit" class="px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center space-x-1.5 shrink-0" title="Apply Filters & Search">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>Apply Filters</span>
                     </button>
                     {% if selected_tier != 'All' or selected_manager != 'All' or selected_cluster != 'All' or selected_product != 'All' or search_query %}
-                    <a href="{{ url_for('employees') }}" class="px-2.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition-colors flex items-center justify-center" title="Reset Filters">
+                    <a href="{{ url_for('employees') }}" class="px-2.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition-colors flex items-center justify-center shrink-0" title="Reset Filters">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
                     {% endif %}
@@ -265,7 +273,7 @@
                         <th class="py-3.5 px-4">Primary Product</th>
                         <th class="py-3.5 px-4 text-center">Score</th>
                         <th class="py-3.5 px-4 text-center">Current Tier</th>
-                        <th class="py-3.5 px-4">Action Roadmap</th>
+                        <th class="py-3.5 px-4">Goal</th>
                         <th class="py-3.5 px-4 text-right">Actions</th>
                     </tr>
                 </thead>
@@ -311,8 +319,8 @@
                         </td>
                         <td class="py-3 px-4 text-right">
                             <button onclick="openEmployeeModal('{{ emp.employee_id }}')" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg transition-colors border border-blue-200 flex items-center space-x-1 ml-auto">
-                                <i class="fa-solid fa-route"></i>
-                                <span>Action Plan</span>
+                                <i class="fa-solid fa-bullseye"></i>
+                                <span>Goal</span>
                             </button>
                         </td>
                     </tr>
@@ -327,7 +335,7 @@
 
 </div>
 
-<!-- Employee Action Plan Modal -->
+<!-- Employee Goal Modal -->
 <div id="empModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
         <div class="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50">
@@ -364,7 +372,7 @@
 
             <!-- Scorecard Details -->
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
-                <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Attribution & Roadmap Details</h4>
+                <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Attribution & Goal Details</h4>
                 <div class="grid grid-cols-2 gap-2 text-slate-600">
                     <div><strong>Direct Manager:</strong> <span id="modalEmpManager"></span></div>
                     <div><strong>Cluster / Portfolio:</strong> <span id="modalEmpCluster"></span></div>
@@ -397,6 +405,11 @@
                         <i class="fa-solid fa-table text-emerald-600"></i>
                         <span>DRP Attribution Sheet</span>
                         <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-emerald-400"></i>
+                    </a>
+                    <a href="{{ drp_guide_url }}" target="_blank" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-blue-800 font-bold text-xs rounded-lg border border-blue-200 shadow-sm flex items-center space-x-1.5 transition-colors">
+                        <i class="fa-solid fa-file-lines text-blue-600"></i>
+                        <span>DRP ID creation end to end guide</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-blue-400"></i>
                     </a>
                 </div>
             </div>
