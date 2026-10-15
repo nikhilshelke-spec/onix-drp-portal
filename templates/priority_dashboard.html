@@ -130,14 +130,11 @@
         <thead class="bg-slate-50 border-b border-slate-200">
             <tr>
                 {% for g in group_list %}
-                <th class="p-3 border-r border-slate-200 align-top min-w-[210px] last:border-r-0">
+                <th class="py-2.5 px-3 border-r border-slate-200 align-top min-w-[190px] last:border-r-0">
                     <div class="flex items-center space-x-1.5 text-slate-900 font-extrabold text-[12px]">
                         <i class="{{ g.icon }} text-blue-600 text-[11px]"></i>
                         <span>{{ g.name }}</span>
                     </div>
-                    {% if g.focus %}
-                    <p class="text-[10px] font-medium text-slate-500 mt-1 leading-snug">{{ g.focus }}</p>
-                    {% endif %}
                 </th>
                 {% endfor %}
             </tr>
@@ -145,16 +142,11 @@
         <tbody class="align-top divide-x divide-slate-200">
             <tr>
                 {% for g in group_list %}
-                <td class="p-3 border-r border-slate-200 last:border-r-0 space-y-2.5">
+                <td class="py-2.5 px-3 border-r border-slate-200 last:border-r-0 space-y-1.5">
                     {% for p in g.products %}
-                    <div>
-                        <div class="font-bold text-slate-900 text-[11px] flex items-start">
-                            <span class="text-blue-500 mr-1.5 shrink-0">•</span>
-                            <span>{{ p.name }}</span>
-                        </div>
-                        {% if p.desc %}
-                        <div class="text-[10px] text-slate-500 pl-3 leading-snug mt-0.5">{{ p.desc }}</div>
-                        {% endif %}
+                    <div class="font-semibold text-slate-800 text-[11px] flex items-center">
+                        <span class="text-blue-500 mr-1.5 shrink-0 text-xs">•</span>
+                        <span>{{ p.name }}</span>
                     </div>
                     {% endfor %}
                 </td>
