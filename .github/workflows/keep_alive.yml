@@ -1,0 +1,16 @@
+name: Keep Portal Awake
+
+on:
+  schedule:
+    # Run every 10 minutes to prevent Render free-tier spin-down
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render DRP Portal
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://onix-drp-portal.onrender.com/ping)
+          echo "Ping response status: $STATUS"

@@ -777,6 +777,10 @@ def api_employee_link():
     link = f"{base}/join/employee/{token}"
     return jsonify({'link': link, 'token': token})
 
+@app.route('/ping')
+def ping():
+    return jsonify({'status': 'ok', 'message': 'DRP Portal is awake'}), 200
+
 @app.route('/api/version')
 def api_version():
     commit_str = '3d3fbd5'
