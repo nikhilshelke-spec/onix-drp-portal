@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-8 pb-10">
+
+    <!-- ── 1. EXECUTIVE HERO BANNER ─────────────────────────────────────────── -->
+    <div class="rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-[#30496d]/40" 
+         style="background: linear-gradient(135deg, #30496d 0%, #1e2f47 70%, #2b3b52 100%);">
+        
+        <!-- Subtle Background Pattern Accent -->
+        <div class="absolute -right-16 -top-16 w-80 h-80 rounded-full opacity-10 pointer-events-none" style="background: #f46262; filter: blur(50px);"></div>
+        
+        <div class="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase border border-white/20 bg-white/10 backdrop-blur-sm text-slate-100">
+                    <span class="w-2 h-2 rounded-full" style="background-color: #f46262;"></span>
+                    <span>Executive Leadership Briefing</span>
+                </div>
+                <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+                    L&D Executive Summary
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed">
+                    Strategic overview of high-impact Learning & Development programs across Onix technical teams. Accelerating delivery readiness, Google Cloud competency, and role-based excellence.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
+                <span class="px-3.5 py-2 bg-black/30 text-amber-200 text-xs font-bold rounded-xl border border-white/15 flex items-center space-x-2">
+                    <i class="fa-solid fa-clock-rotate-left text-amber-400 text-xs"></i>
+                    <span>Updated: <strong class="text-white">{{ data_as_of }}</strong></span>
+                </span>
+
+                <button onclick="copyShareableLink()" class="px-4 py-2.5 text-white text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center space-x-2 border border-white/20 hover:brightness-110 active:scale-95" style="background-color: #f46262;" title="Copy page link for Manager">
+                    <i class="fa-solid fa-share-nodes text-xs"></i>
+                    <span id="copyBtnText">Share Link with Manager</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Metric Ribbon -->
+        <div class="mt-6 pt-5 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-white/10 rounded-2xl p-3.5 border border-white/10 backdrop-blur-sm">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300 block">Total Active Initiatives</span>
+                <span class="text-2xl font-black text-white mt-1 block">5 Programs</span>
+                <span class="text-[10px] text-emerald-300 font-medium mt-0.5 block">2 Live • 3 In Final Rollout</span>
+            </div>
+            <div class="bg-white/10 rounded-2xl p-3.5 border border-white/10 backdrop-blur-sm">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300 block">DRP Technical Scope</span>
+                <span class="text-2xl font-black text-white mt-1 block">{{ priority_kpis.total_headcount }} Engineers</span>
+                <span class="text-[10px] text-amber-300 font-medium mt-0.5 block">Focus 8 Priority Products</span>
+            </div>
+            <div class="bg-white/10 rounded-2xl p-3.5 border border-white/10 backdrop-blur-sm">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300 block">FDE Nominations</span>
+                <span class="text-2xl font-black text-white mt-1 block">{{ fde_total_count }} Associates</span>
+                <span class="text-[10px] text-rose-300 font-medium mt-0.5 block">Across Top 5 Delivery Clusters</span>
+            </div>
+            <div class="bg-white/10 rounded-2xl p-3.5 border border-white/10 backdrop-blur-sm">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300 block">Tier 1 Mastery Rate</span>
+                <span class="text-2xl font-black text-emerald-400 mt-1 block">{{ priority_kpis.tier1_pct }}%</span>
+                <span class="text-[10px] text-slate-200 font-medium mt-0.5 block">{{ priority_kpis.tier1_count }} Mastery (49+ pts)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 2. TOP 5 STRATEGIC INITIATIVES HIGHLIGHT CARDS ────────────────────── -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center space-x-2">
+                    <span class="w-2.5 h-6 rounded-full" style="background-color: #30496d;"></span>
+                    <span>Top 5 Strategic L&D Initiatives</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">High-level status of flagship programs driving organizational technical readiness</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            <!-- Card 1: DRP (Delivery Readiness Portal) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute top-0 left-0 right-0 h-1.5" style="background: linear-gradient(90deg, #30496d, #f46262);"></div>
+                <div>
+                    <div class="flex items-start justify-between gap-2 mt-1">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm" style="background-color: #30496d;">
+                            <i class="fa-solid fa-chart-line text-sm"></i>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            Active Flagship
+                        </span>
+                    </div>
+
+                    <h3 class="font-extrabold text-slate-900 text-base mt-3 group-hover:text-[#30496d] transition-colors">
+                        1. Delivery Readiness Portal (DRP)
+                    </h3>
+                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                        Comprehensive skill & point progression system mapped to Google Cloud competency tiers across 25 focus products.
+                    </p>
+
+                    <!-- Mini KPI highlight -->
+                    <div class="grid grid-cols-2 gap-2 mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                        <div>
+                            <span class="text-[10px] text-slate-500 font-semibold block">Tier 1 Mastery</span>
+                            <span class="font-black text-emerald-700 text-sm mt-0.5 block">{{ priority_kpis.tier1_count }} ({{ priority_kpis.tier1_pct }}%)</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 font-semibold block">Tier 2 Pipeline</span>
+                            <span class="font-black text-blue-700 text-sm mt-0.5 block">{{ priority_kpis.tier2_count }} ({{ priority_kpis.tier2_pct }}%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-slate-500">Live Portal</span>
+                    <a href="{{ url_for('priority_dashboard') }}" class="inline-flex items-center space-x-1.5 text-xs font-extrabold hover:underline" style="color: #30496d;">
+                        <span>More Details &rarr;</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 2: FDE (Field Delivery Enablement) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute top-0 left-0 right-0 h-1.5" style="background: linear-gradient(90deg, #f46262, #30496d);"></div>
+                <div>
+                    <div class="flex items-start justify-between gap-2 mt-1">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm" style="background-color: #f46262;">
+                            <i class="fa-solid fa-graduation-cap text-sm"></i>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
+                            Active Nominations
+                        </span>
+                    </div>
+
+                    <h3 class="font-extrabold text-slate-900 text-base mt-3 group-hover:text-[#f46262] transition-colors">
+                        2. Field Delivery Enablement (FDE)
+                    </h3>
+                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                        Cluster-driven nomination track preparing certified delivery engineers for hands-on, high-complexity client engagements.
+                    </p>
+
+                    <!-- Mini KPI highlight -->
+                    <div class="grid grid-cols-2 gap-2 mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                        <div>
+                            <span class="text-[10px] text-slate-500 font-semibold block">Total Nominated</span>
+                            <span class="font-black text-rose-600 text-sm mt-0.5 block">{{ fde_total_count }} Engineers</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 font-semibold block">Top Cluster</span>
+                            <span class="font-black text-slate-800 text-xs truncate mt-1 block">Cloud Data &amp; Analytics</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-slate-500">Google Sheet</span>
+                    <a href="{{ fde_sheet_url }}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs font-extrabold hover:underline" style="color: #f46262;">
+                        <span>More Details &rarr;</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 3: Cloud & GenAI Certification Drive (Coming Soon) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-slate-200"></div>
+                <div>
+                    <div class="flex items-start justify-between gap-2 mt-1">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 text-slate-600 shrink-0 shadow-sm">
+                            <i class="fa-solid fa-certificate text-sm"></i>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white shadow-sm flex items-center space-x-1" style="background-color: #f46262;">
+                            <i class="fa-solid fa-sparkles text-[9px]"></i>
+                            <span>Coming Soon</span>
+                        </span>
+                    </div>
+
+                    <h3 class="font-extrabold text-slate-900 text-base mt-3">
+                        3. Cloud &amp; GenAI Certification Drive
+                    </h3>
+                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                        Organization-wide push for Google Cloud Professional certifications (PCA, PDE, Cloud Security) & Generative AI specialty badges.
+                    </p>
+
+                    <div class="mt-4 p-3 bg-amber-50/60 rounded-xl border border-amber-100 text-xs text-amber-900">
+                        <span class="font-bold block text-[11px] text-amber-800">Target Milestone:</span>
+                        <p class="text-[11px] text-amber-700 mt-0.5">150+ Professional Certifications target in H1 enablement calendar.</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-slate-400">Roadmap Track</span>
+                    <span class="text-xs font-bold text-slate-400 italic">Details Launching Soon</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Engineering Manager Enablement Scorecard (Coming Soon) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-slate-200"></div>
+                <div>
+                    <div class="flex items-start justify-between gap-2 mt-1">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 text-slate-600 shrink-0 shadow-sm">
+                            <i class="fa-solid fa-user-tie text-sm"></i>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white shadow-sm flex items-center space-x-1" style="background-color: #f46262;">
+                            <i class="fa-solid fa-sparkles text-[9px]"></i>
+                            <span>Coming Soon</span>
+                        </span>
+                    </div>
+
+                    <h3 class="font-extrabold text-slate-900 text-base mt-3">
+                        4. Manager Enablement Scorecard
+                    </h3>
+                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                        Interactive leadership dashboard enabling engineering managers to track direct reports' point velocity and close skill gaps faster.
+                    </p>
+
+                    <div class="mt-4 p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-blue-900">
+                        <span class="font-bold block text-[11px] text-blue-800">Target Milestone:</span>
+                        <p class="text-[11px] text-blue-700 mt-0.5">Empowering 20+ engineering managers with real-time talent readiness charts.</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-slate-400">Roadmap Track</span>
+                    <span class="text-xs font-bold text-slate-400 italic">Details Launching Soon</span>
+                </div>
+            </div>
+
+            <!-- Card 5: AI-Powered Customer Experience (GECX) Bootcamp (Coming Soon) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-slate-200"></div>
+                <div>
+                    <div class="flex items-start justify-between gap-2 mt-1">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 text-slate-600 shrink-0 shadow-sm">
+                            <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white shadow-sm flex items-center space-x-1" style="background-color: #f46262;">
+                            <i class="fa-solid fa-sparkles text-[9px]"></i>
+                            <span>Coming Soon</span>
+                        </span>
+                    </div>
+
+                    <h3 class="font-extrabold text-slate-900 text-base mt-3">
+                        5. GECX &amp; Agentic AI Bootcamp
+                    </h3>
+                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                        Intensive hands-on training for engineers on building production-grade enterprise agents, Gemini Enterprise APIs, and contact center AI.
+                    </p>
+
+                    <div class="mt-4 p-3 bg-purple-50/60 rounded-xl border border-purple-100 text-xs text-purple-900">
+                        <span class="font-bold block text-[11px] text-purple-800">Target Milestone:</span>
+                        <p class="text-[11px] text-purple-700 mt-0.5">50+ specialized solution architects trained for enterprise AI client pilots.</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-slate-400">Roadmap Track</span>
+                    <span class="text-xs font-bold text-slate-400 italic">Details Launching Soon</span>
+                </div>
+            </div>
+
+            <!-- Roadmap Expansion Summary Card -->
+            <div class="rounded-2xl p-5 border border-dashed border-slate-300 bg-slate-50/60 flex flex-col justify-between text-center items-center">
+                <div class="my-auto space-y-2">
+                    <div class="w-12 h-12 rounded-full mx-auto flex items-center justify-center text-slate-400 bg-white border border-slate-200 shadow-sm">
+                        <i class="fa-solid fa-plus text-base"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-800 text-sm">Additional L&D Initiatives</h4>
+                    <p class="text-[11px] text-slate-500 max-w-xs leading-relaxed">
+                        New programs are continuously evaluated and added to this Executive Summary as curriculums &amp; cohort schedules are finalized.
+                    </p>
+                </div>
+                <div class="w-full pt-3 border-t border-slate-200/60 text-[11px] text-slate-400 font-semibold">
+                    L&D Strategic Roadmap
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── 3. IN-DEPTH SPOTLIGHT: FDE CLUSTER NOMINATIONS BREAKDOWN ───────────── -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 pb-4 border-b border-slate-100">
+            <div>
+                <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wide bg-rose-50 text-rose-700 border border-rose-200 mb-1.5">
+                    <i class="fa-solid fa-chart-column"></i>
+                    <span>Program Spotlight: FDE</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900">
+                    Field Delivery Enablement (FDE) — Cluster Nominations
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Associate nomination counts across delivery clusters for high-impact technical training cohorts.
+                </p>
+            </div>
+
+            <a href="{{ fde_sheet_url }}" target="_blank" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center space-x-2 shrink-0 self-start sm:self-center" title="Open Google Sheet in new tab">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Open FDE Master Spreadsheet</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1 opacity-80"></i>
+            </a>
+        </div>
+
+        <!-- Chart and Table Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            
+            <!-- Left: Chart.js Visual Bar Chart -->
+            <div class="lg:col-span-7 bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
+                        <i class="fa-solid fa-ranking-star text-amber-500"></i>
+                        <span>Top 5 Cluster Nominations Ranking</span>
+                    </h4>
+                    <span class="text-[11px] font-bold text-slate-500">Total: <strong class="text-slate-900">{{ fde_total_count }} Nominated</strong></span>
+                </div>
+                <div class="h-64 relative">
+                    <canvas id="fdeClusterChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Right: Ranked Table Breakdown (Matching Sheet Columns A & B) -->
+            <div class="lg:col-span-5 space-y-3">
+                <div class="overflow-hidden border border-slate-200 rounded-2xl shadow-sm">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                            <tr>
+                                <th class="py-2.5 px-3">Cluster Name (Col A)</th>
+                                <th class="py-2.5 px-3 text-center w-28">Nominated (Col B)</th>
+                                <th class="py-2.5 px-3 text-right w-20">Share</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            {% for c in fde_clusters %}
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="py-3 px-3 font-semibold text-slate-900">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white shrink-0" 
+                                              style="background-color: {% if loop.index == 1 %}#f46262{% elif loop.index == 2 %}#30496d{% else %}#64748b{% endif %};">
+                                            {{ c.rank }}
+                                        </span>
+                                        <span class="truncate max-w-[200px]" title="{{ c.cluster }}">{{ c.cluster }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-3 text-center font-mono font-extrabold text-slate-900 bg-slate-50/40">
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold" style="background-color: #F8FAFC; color: #30496d; border: 1px solid #CBD5E1;">
+                                        {{ c.count }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-3 text-right font-semibold text-slate-700">
+                                    {{ c.pct }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-slate-100/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
+                            <tr>
+                                <td class="py-2.5 px-3">Total Nominated Associates</td>
+                                <td class="py-2.5 px-3 text-center text-rose-600 font-black text-sm">{{ fde_total_count }}</td>
+                                <td class="py-2.5 px-3 text-right">100%</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 flex items-start space-x-2">
+                    <i class="fa-solid fa-circle-info text-amber-600 mt-0.5 shrink-0"></i>
+                    <span>
+                        Data aligns directly with the official Google Sheet (Columns A &amp; B). As more rows are added to the sheet, this leaderboard updates accordingly.
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── 4. IN-DEPTH SPOTLIGHT: DRP TECHNICAL MASTERY RECAP ────────────────── -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 pb-4 border-b border-slate-100">
+            <div>
+                <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wide bg-blue-50 text-blue-800 border border-blue-200 mb-1.5">
+                    <i class="fa-solid fa-trophy text-amber-500"></i>
+                    <span>Program Spotlight: DRP</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900">
+                    Delivery Readiness Portal (DRP) — Technical Competency Maturity
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Active workforce distribution across Google Cloud 8 Priority Focus Products &amp; 25 Cloud Competency Areas.
+                </p>
+            </div>
+
+            <a href="{{ url_for('priority_dashboard') }}" class="px-4 py-2.5 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center space-x-2 shrink-0 self-start sm:self-center hover:brightness-110" style="background-color: #30496d;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>Open Full DRP Dashboard</span>
+            </a>
+        </div>
+
+        <!-- 4 Tiers Summary Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Tier 1 -->
+            <div class="bg-emerald-50/40 p-4 rounded-2xl border border-emerald-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black uppercase text-emerald-800 tracking-wider">Tier 1 • Mastery</span>
+                        <i class="fa-solid fa-trophy text-emerald-600 text-sm"></i>
+                    </div>
+                    <span class="text-3xl font-black text-emerald-700 block mt-2">{{ priority_kpis.tier1_count }}</span>
+                    <span class="text-[11px] font-bold text-emerald-600 mt-0.5 block">{{ priority_kpis.tier1_pct }}% of active tech team</span>
+                </div>
+                <div class="mt-3 pt-2 border-t border-emerald-100 text-[10px] text-emerald-800 font-semibold flex justify-between">
+                    <span>Target Criterion</span>
+                    <span class="font-extrabold">49+ Points</span>
+                </div>
+            </div>
+
+            <!-- Tier 2 -->
+            <div class="p-4 rounded-2xl border flex flex-col justify-between" style="background-color: #F6F9FC; border-color: #30496d;">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black uppercase tracking-wider" style="color: #30496d;">Tier 2 • Ready</span>
+                        <i class="fa-solid fa-rocket text-sm" style="color: #30496d;"></i>
+                    </div>
+                    <span class="text-3xl font-black block mt-2" style="color: #30496d;">{{ priority_kpis.tier2_count }}</span>
+                    <span class="text-[11px] font-bold text-blue-700 mt-0.5 block">{{ priority_kpis.tier2_pct }}% of active tech team</span>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 text-[10px] text-slate-700 font-semibold flex justify-between">
+                    <span>Target Criterion</span>
+                    <span class="font-extrabold" style="color: #30496d;">35 – 49 Points</span>
+                </div>
+            </div>
+
+            <!-- Tier 3 -->
+            <div class="bg-amber-50/40 p-4 rounded-2xl border border-amber-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black uppercase text-amber-800 tracking-wider">Tier 3 • Advancing</span>
+                        <i class="fa-solid fa-chart-line text-amber-600 text-sm"></i>
+                    </div>
+                    <span class="text-3xl font-black text-amber-800 block mt-2">{{ priority_kpis.tier3_count }}</span>
+                    <span class="text-[11px] font-bold text-amber-700 mt-0.5 block">{{ priority_kpis.tier3_pct }}% of active tech team</span>
+                </div>
+                <div class="mt-3 pt-2 border-t border-amber-100 text-[10px] text-amber-800 font-semibold flex justify-between">
+                    <span>Target Criterion</span>
+                    <span class="font-extrabold">20 – 34 Points</span>
+                </div>
+            </div>
+
+            <!-- Tier 4 -->
+            <div class="bg-purple-50/40 p-4 rounded-2xl border border-purple-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black uppercase text-purple-800 tracking-wider">Tier 4 • Foundation</span>
+                        <i class="fa-solid fa-seedling text-purple-600 text-sm"></i>
+                    </div>
+                    <span class="text-3xl font-black text-purple-800 block mt-2">{{ priority_kpis.tier4_count }}</span>
+                    <span class="text-[11px] font-bold text-purple-700 mt-0.5 block">{{ priority_kpis.tier4_pct }}% of active tech team</span>
+                </div>
+                <div class="mt-3 pt-2 border-t border-purple-100 text-[10px] text-purple-800 font-semibold flex justify-between">
+                    <span>Target Criterion</span>
+                    <span class="font-extrabold">1 – 19 Points</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Chart.js Script & Share Script ──────────────────────────────────────── -->
+<script>
+// 1. Render FDE Cluster Nominations Bar Chart
+document.addEventListener("DOMContentLoaded", function() {
+    const ctx = document.getElementById('fdeClusterChart');
+    if (!ctx) return;
+
+    const clustersData = {{ fde_clusters | tojson }};
+    const labels = clustersData.map(c => c.cluster);
+    const counts = clustersData.map(c => c.count);
+
+    new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Nominated Associates',
+                data: counts,
+                backgroundColor: [
+                    '#f46262', // Rank 1 Coral Accent
+                    '#30496d', // Rank 2 Navy Primary
+                    '#415b80', // Rank 3
+                    '#5c779e', // Rank 4
+                    '#7c94b5'  // Rank 5
+                ],
+                borderRadius: 8,
+                borderSkipped: false,
+                barThickness: 28
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ` ${context.raw} Nominated Associates`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 10, weight: 'bold' },
+                        callback: function(value) {
+                            const label = this.getLabelForValue(value);
+                            return label.length > 18 ? label.substring(0, 16) + '...' : label;
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#F1F5F9' },
+                    ticks: { font: { size: 10 } }
+                }
+            }
+        }
+    });
+});
+
+// 2. 1-Click Copy Shareable Link for Manager
+function copyShareableLink() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('copyBtnText');
+        if (btn) {
+            const originalText = btn.innerText;
+            btn.innerText = "Link Copied to Clipboard! ✓";
+            setTimeout(() => {
+                btn.innerText = originalText;
+            }, 2500);
+        }
+    }).catch(err => {
+        alert("Copy this link: " + url);
+    });
+}
+</script>
+{% endblock %}

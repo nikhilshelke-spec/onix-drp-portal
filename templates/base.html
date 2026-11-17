@@ -65,6 +65,10 @@
                         <i class="fa-solid fa-users mr-1.5"></i> Employee Hub
                     </a>
 
+                    <a href="{{ url_for('ld_summary') }}" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors {% if page == 'ld_summary' %}text-white font-bold shadow-sm{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}" {% if page == 'ld_summary' %}style="background-color: #30496d;"{% endif %}>
+                        <i class="fa-solid fa-graduation-cap mr-1.5" {% if page != 'ld_summary' %}style="color: #f46262;"{% endif %}></i> L&D Summary
+                    </a>
+
                     {% if current_role in ['owner', 'editor'] %}
                     <a href="{{ url_for('campaigns') }}" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors {% if page == 'campaigns' %}bg-blue-50 text-blue-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
                         <i class="fa-solid fa-paper-plane mr-1.5"></i> Email Automation

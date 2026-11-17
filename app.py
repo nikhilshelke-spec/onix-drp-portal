@@ -5,7 +5,11 @@ import uuid
 import secrets
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file, Response, session, flash
 import pandas as pd
-from config import GOOGLE_SHEET_URL, DRP_PORTAL_URL, CREDLY_URL, DRP_MAPPING_SHEET_URL, DRP_ATTRIBUTION_URL, DRP_GUIDE_URL, TIER_DEFINITIONS
+from config import (
+    GOOGLE_SHEET_URL, DRP_PORTAL_URL, CREDLY_URL, DRP_MAPPING_SHEET_URL, 
+    DRP_ATTRIBUTION_URL, DRP_GUIDE_URL, FDE_SHEET_URL, BRAND_PRIMARY, BRAND_ACCENT, 
+    TIER_DEFINITIONS
+)
 from drp_service import drp_service
 from email_service import email_service
 from access_manager import (
@@ -77,6 +81,9 @@ def inject_global_vars():
         'drp_mapping_sheet_url': DRP_MAPPING_SHEET_URL,
         'drp_attribution_url': DRP_ATTRIBUTION_URL,
         'drp_guide_url': DRP_GUIDE_URL,
+        'fde_sheet_url': FDE_SHEET_URL,
+        'brand_primary': BRAND_PRIMARY,
+        'brand_accent': BRAND_ACCENT,
         'tier_definitions': TIER_DEFINITIONS,
         'current_role': role,
         'is_editor': (role == 'owner' and is_owner) or (role == 'editor'),
@@ -189,6 +196,35 @@ def priority_dashboard():
     product_tables = drp_service.get_product_tables()
     product_groups = drp_service.get_product_groups()
     return render_template('priority_dashboard.html', kpis=kpis, charts=charts, product_tables=product_tables, product_groups=product_groups, page='priority_dashboard')
+
+# ─── L&D EXECUTIVE SUMMARY ───────────────────────────────────────────────────
+
+@app.route('/ld_summary')
+@app.route('/ld_executive_summary')
+def ld_summary():
+    priority_kpis = drp_service.get_priority_kpis()
+    overall_kpis = drp_service.get_kpis()
+    
+    # FDE Top 5 Clusters Nominations (Tentative data based on Google Sheet Columns A & B)
+    fde_clusters = [
+        {"rank": 1, "cluster": "Cloud Data & Analytics Modernization", "count": 84, "lead": "Enterprise Data", "status": "Active Batch"},
+        {"rank": 2, "cluster": "Enterprise Cloud Infrastructure & Workloads", "count": 62, "lead": "Core Infra", "status": "Active Batch"},
+        {"rank": 3, "cluster": "Enterprise AI & Agentic Innovation", "count": 58, "lead": "AI Practice", "status": "Enrolling"},
+        {"rank": 4, "cluster": "Application Modernization & Cloud Native", "count": 45, "lead": "App Modernization", "status": "Enrolling"},
+        {"rank": 5, "cluster": "Database Migration & Cloud Databases", "count": 38, "lead": "DB Solutions", "status": "Nominations Open"}
+    ]
+    fde_total_count = sum(c["count"] for c in fde_clusters)
+    for c in fde_clusters:
+        c["pct"] = round((c["count"] / fde_total_count) * 100, 1)
+
+    return render_template(
+        'ld_summary.html',
+        priority_kpis=priority_kpis,
+        overall_kpis=overall_kpis,
+        fde_clusters=fde_clusters,
+        fde_total_count=fde_total_count,
+        page='ld_summary'
+    )
 
 # ─── EMPLOYEE HUB & VERIFICATION ─────────────────────────────────────────────
 
