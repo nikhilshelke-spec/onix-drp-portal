@@ -69,11 +69,17 @@ def setup_role():
             if session.get('role') == 'owner' or 'role' not in session:
                 session['role'] = 'leader'
 
+    # Single-page restriction for L&D Executive view (strictly only this 1 page)
+    if (session.get('single_page_scope') == 'ld_summary' or request.args.get('view') == 'executive') and not session.get('is_owner'):
+        if request.endpoint and request.endpoint not in ['ld_summary', 'static', 'api_version', 'ping']:
+            return redirect(url_for('ld_summary'))
+
 @app.context_processor
 def inject_global_vars():
     role = session.get('role', 'leader')
     verified_email = session.get('verified_email', '')
     is_owner = session.get('is_owner', False) and session.get('admin_authenticated', False)
+    is_single_page = (session.get('single_page_scope') == 'ld_summary' or request.args.get('view') == 'executive') and not is_owner
     return {
         'google_sheet_url': GOOGLE_SHEET_URL,
         'drp_portal_url': DRP_PORTAL_URL,
@@ -88,6 +94,7 @@ def inject_global_vars():
         'current_role': role,
         'is_editor': (role == 'owner' and is_owner) or (role == 'editor'),
         'is_owner': is_owner,
+        'is_single_page': is_single_page,
         'owner_email': OWNER_EMAIL,
         'verified_email': verified_email,
         'user_email': session.get('user_email', OWNER_EMAIL if is_owner else verified_email),
@@ -98,7 +105,7 @@ def inject_global_vars():
     }
 
 def _get_shareable_base_url():
-    public_url = os.environ.get('PUBLIC_PORTAL_URL', '') or os.environ.get('RENDER_EXTERNAL_URL', '')
+    public_url = os.environ.get('PUBLIC_PORTAL_URL', '') or os.environ.get('RENDER_EXTERNAL_URL', '') or DRP_PORTAL_URL
     if public_url:
         return public_url.rstrip('/')
     
@@ -744,6 +751,9 @@ def join_leader(token):
         session['is_owner'] = False
         session['admin_authenticated'] = False
         target = request.args.get('target', '') or request.args.get('next', '')
+        if target in ['ld_summary', 'ld_executive_summary', '/ld_summary', '/ld_executive_summary']:
+            session['single_page_scope'] = 'ld_summary'
+            return redirect(url_for('ld_summary'))
         if target == 'all' or target == 'dashboard' or target == '/dashboard':
             return redirect(url_for('dashboard'))
         return redirect(url_for('priority_dashboard'))

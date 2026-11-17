@@ -46,6 +46,15 @@
                     <img src="/static/img/Onix-Logo.svg" alt="ONIX" class="h-8 w-auto">
                 </a>
 
+                {% if is_single_page %}
+                <!-- Single Page Executive View Navigation (All other tabs hidden) -->
+                <div class="flex items-center space-x-2">
+                    <span class="px-3.5 py-1.5 rounded-lg text-sm font-bold text-white shadow-sm flex items-center gap-2" style="background-color: #30496d;">
+                        <i class="fa-solid fa-graduation-cap" style="color: #f46262;"></i>
+                        <span>L&D Executive Summary</span>
+                    </span>
+                </div>
+                {% else %}
                 <!-- Navigation Links -->
                 <nav class="hidden md:flex space-x-1 items-center">
                     {% if current_role in ['owner', 'editor'] %}
@@ -81,12 +90,23 @@
                     </a>
                     {% endif %}
                 </nav>
+                {% endif %}
 
                 <!-- Action Controls & Role Badge -->
                 <div class="flex items-center space-x-2">
-                    
+                    {% if is_single_page %}
+                    <div class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 text-xs font-bold flex items-center space-x-1.5">
+                        <i class="fa-solid fa-chart-line text-slate-600 text-xs"></i>
+                        <span>Executive Leadership View</span>
+                    </div>
+                    {% else %}
                     {% if current_role == 'owner' and is_owner %}
                     <!-- Share Buttons (Visible ONLY to Owner) -->
+                    {% if page == 'ld_summary' %}
+                    <button onclick="openLdShareModal()" class="hidden lg:inline-flex items-center px-2.5 py-1.5 text-xs font-bold text-white rounded-lg transition-colors shadow-sm hover:opacity-90" style="background-color: #f46262;" title="Share this Dashboard">
+                        <i class="fa-solid fa-share-nodes mr-1.5"></i> Share this Dashboard
+                    </button>
+                    {% endif %}
                     <button onclick="openLeaderShare()" class="hidden lg:inline-flex items-center px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200 transition-colors shadow-sm" title="Share with Leadership">
                         <i class="fa-solid fa-user-tie mr-1.5 text-indigo-600"></i> Share Leadership
                     </button>
@@ -134,6 +154,7 @@
                     <a href="{{ drp_attribution_url }}" target="_blank" class="hidden sm:inline-flex items-center px-3 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors border border-emerald-200">
                         <i class="fa-solid fa-table text-emerald-600 mr-1.5"></i> DRP Attribution
                     </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -259,8 +280,179 @@
     </div>
     {% endif %}
 
+    <!-- ── L&D SUMMARY SHARE MODAL (Executive Single-Page Share) ────────── -->
+    <div id="ldShareModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 overflow-hidden">
+        <div class="flex items-center justify-between p-5 text-white" style="background: linear-gradient(135deg, #1e293b 0%, #30496d 100%);">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg">
+              <i class="fa-solid fa-graduation-cap" style="color: #f46262;"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-base">Share L&D Executive Dashboard</h2>
+              <p class="text-xs text-slate-300">Single-page view for specific executive leaders</p>
+            </div>
+          </div>
+          <button onclick="closeModal('ldShareModal')" class="text-slate-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <!-- Direct Single-Page Executive Link -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Universal Single-Page Link</label>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded text-white" style="background-color: #30496d;">Only 1 Page Visible</span>
+            </div>
+            <div class="flex gap-2 items-center">
+              <input id="directLdLinkInput" type="text" readonly class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 bg-white font-mono" value="https://onix-drp-portal.onrender.com/ld_summary?view=executive"/>
+              <button onclick="copyDirectLdLink()" class="px-4 py-2 text-white text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center space-x-1 shrink-0" style="background-color: #f46262;">
+                <i class="fa-regular fa-copy"></i>
+                <span id="copyLdBtnText">Copy Link</span>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500">Opening this link displays <strong>strictly the L&D Executive Summary page</strong>. All other portal tabs and admin tools are hidden.</p>
+          </div>
+
+          <!-- Add Specific Executive Leader -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Authorize Specific Executive Email</label>
+            <div class="flex gap-2">
+              <input id="ldLeaderEmailInput" type="email" placeholder="e.g. executive@onixnet.com"
+                class="flex-1 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-rose-500 outline-none" />
+              <button onclick="addLdLeaderAccess()" class="px-4 py-2.5 text-white text-xs font-bold rounded-xl transition-colors whitespace-nowrap shadow-sm flex items-center space-x-1.5" style="background-color: #30496d;">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add & Generate</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Authorized Leaders List for LD -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Authorized Executives & Direct Links</label>
+            <div id="ldLeaderList" class="space-y-2 max-h-44 overflow-y-auto pr-1"></div>
+          </div>
+
+          <!-- Security note -->
+          <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 space-y-1">
+            <p class="font-bold flex items-center space-x-1.5 text-rose-800">
+              <i class="fa-solid fa-lock text-rose-600"></i>
+              <span>Single-Page Executive Protection:</span>
+            </p>
+            <p class="text-[11px] text-rose-800 leading-relaxed">
+              Recipients of this link can only view the Top 5 DRP and FDE cluster metrics. They cannot access All Products, Employee Hub, Email Automation, or data sync.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── SHARE MODAL SCRIPTS ────────────────────────── -->
     <script>
+    function openLdShareModal() {
+      const m = document.getElementById('ldShareModal');
+      if (m) {
+        m.classList.remove('hidden');
+        loadLdLeaders();
+      } else {
+        const link = "https://onix-drp-portal.onrender.com/ld_summary?view=executive";
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(link).then(() => alert('Executive Link copied to clipboard:\n\n' + link));
+        } else {
+          prompt('Copy Executive Link:', link);
+        }
+      }
+    }
+
+    function copyDirectLdLink() {
+      const input = document.getElementById('directLdLinkInput');
+      const text = input ? input.value : "https://onix-drp-portal.onrender.com/ld_summary?view=executive";
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          const btnText = document.getElementById('copyLdBtnText');
+          if (btnText) {
+            btnText.innerText = "Copied!";
+            setTimeout(() => btnText.innerText = "Copy Link", 2000);
+          }
+        });
+      } else {
+        prompt('Copy Link:', text);
+      }
+    }
+
+    async function loadLdLeaders() {
+      try {
+        const res = await fetch('/api/access/leaders?page=ld_summary');
+        const data = await res.json();
+        const list = document.getElementById('ldLeaderList');
+        if (!list) return;
+        if (!data.leaders || data.leaders.length === 0) {
+          list.innerHTML = '<p class="text-xs text-slate-400 text-center py-3 bg-slate-50 rounded-xl border border-slate-100">No specific executives added yet. Enter an email above to generate a unique personal link.</p>';
+          return;
+        }
+        list.innerHTML = data.leaders.map(l => `
+          <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-2.5 gap-2">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full" style="background-color: #f46262;"></span>
+                <p class="text-xs font-bold text-slate-900 truncate">${l.email}</p>
+              </div>
+              <input type="text" readonly value="${l.link}" class="w-full text-[11px] font-mono text-slate-500 bg-transparent border-0 outline-none truncate mt-0.5" />
+            </div>
+            <div class="flex gap-1.5 shrink-0">
+              <button onclick="copyText('${l.link}', this)" class="px-2.5 py-1.5 text-white text-xs font-bold rounded-lg transition-colors flex items-center space-x-1" style="background-color: #f46262;">
+                <i class="fa-regular fa-copy"></i>
+                <span>Copy</span>
+              </button>
+              <button onclick="removeLdLeaderAccess('${l.email}')" class="px-2 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-lg transition-colors">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function addLdLeaderAccess() {
+      const input = document.getElementById('ldLeaderEmailInput');
+      const email = input ? input.value.trim() : '';
+      if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/access/add_leader', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({email, page: 'ld_summary'})
+        });
+        const data = await res.json();
+        if (data.success) {
+          input.value = '';
+          loadLdLeaders();
+        } else {
+          alert(data.error || 'Failed to add leader');
+        }
+      } catch (err) {
+        alert('Error: ' + err);
+      }
+    }
+
+    async function removeLdLeaderAccess(email) {
+      if (!confirm(`Remove access for ${email}?`)) return;
+      try {
+        await fetch('/api/access/remove_leader', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({email})
+        });
+        loadLdLeaders();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     function openLeaderShare() {
       const m = document.getElementById('leaderShareModal');
       if (m) {
@@ -290,7 +482,7 @@
       if (m) m.classList.add('hidden');
     }
     
-    ['leaderShareModal','employeeShareModal','editorShareModal'].forEach(id => {
+    ['leaderShareModal','employeeShareModal','editorShareModal','ldShareModal'].forEach(id => {
       const m = document.getElementById(id);
       if (m) {
         m.addEventListener('click', function(e){ if(e.target===this) closeModal(id); });
