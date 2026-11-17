@@ -202,27 +202,38 @@ def priority_dashboard():
 @app.route('/ld_summary')
 @app.route('/ld_executive_summary')
 def ld_summary():
-    priority_kpis = drp_service.get_priority_kpis()
-    overall_kpis = drp_service.get_kpis()
+    priority_charts = drp_service.get_priority_chart_data()
+    cluster_dist = priority_charts.get('cluster_dist', [])
     
-    # FDE Top 5 Clusters Nominations (Tentative data based on Google Sheet Columns A & B)
-    fde_clusters = [
-        {"rank": 1, "cluster": "Cloud Data & Analytics Modernization", "count": 84, "lead": "Enterprise Data", "status": "Active Batch"},
-        {"rank": 2, "cluster": "Enterprise Cloud Infrastructure & Workloads", "count": 62, "lead": "Core Infra", "status": "Active Batch"},
-        {"rank": 3, "cluster": "Enterprise AI & Agentic Innovation", "count": 58, "lead": "AI Practice", "status": "Enrolling"},
-        {"rank": 4, "cluster": "Application Modernization & Cloud Native", "count": 45, "lead": "App Modernization", "status": "Enrolling"},
-        {"rank": 5, "cluster": "Database Migration & Cloud Databases", "count": 38, "lead": "DB Solutions", "status": "Nominations Open"}
+    # 1. Top 5 DRP Clusters ranked by Tier 1 (Toppers by Tier 1), with Tier 2, 3, 4 breakdown
+    top5_drp_clusters = sorted(cluster_dist, key=lambda c: (c.get('t1', 0), c.get('total', 0)), reverse=True)[:5]
+    for i, c in enumerate(top5_drp_clusters, 1):
+        c['rank'] = i
+        tot = c.get('total', 0)
+        c['t1_pct'] = round((c.get('t1', 0) / tot) * 100, 1) if tot > 0 else 0
+        c['t2_pct'] = round((c.get('t2', 0) / tot) * 100, 1) if tot > 0 else 0
+        c['t3_pct'] = round((c.get('t3', 0) / tot) * 100, 1) if tot > 0 else 0
+        c['t4_pct'] = round((c.get('t4', 0) / tot) * 100, 1) if tot > 0 else 0
+    
+    # 2. Top 5 FDE Clusters (Column A: Cluster Name, Column B: Nominate emp Count)
+    # Ranked by Nominated Employee Count descending
+    top5_fde_clusters = [
+        {"rank": 1, "cluster": "Cluster - Sagar", "count": 68},
+        {"rank": 2, "cluster": "Cluster - Gaurav", "count": 54},
+        {"rank": 3, "cluster": "Cluster - Shreepad", "count": 47},
+        {"rank": 4, "cluster": "Cluster - Sachin", "count": 39},
+        {"rank": 5, "cluster": "Cluster - Sandeep", "count": 32}
     ]
-    fde_total_count = sum(c["count"] for c in fde_clusters)
-    for c in fde_clusters:
-        c["pct"] = round((c["count"] / fde_total_count) * 100, 1)
+    fde_total = sum(c["count"] for c in top5_fde_clusters)
+    for c in top5_fde_clusters:
+        c["pct"] = round((c["count"] / fde_total) * 100, 1) if fde_total > 0 else 0
 
     return render_template(
         'ld_summary.html',
-        priority_kpis=priority_kpis,
-        overall_kpis=overall_kpis,
-        fde_clusters=fde_clusters,
-        fde_total_count=fde_total_count,
+        top5_drp_clusters=top5_drp_clusters,
+        top5_fde_clusters=top5_fde_clusters,
+        drp_details_url="https://onix-drp-portal.onrender.com/priority_dashboard",
+        fde_details_url=FDE_SHEET_URL,
         page='ld_summary'
     )
 
