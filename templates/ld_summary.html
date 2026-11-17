@@ -196,13 +196,13 @@
                         </span>
                     </h2>
                     <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                        Top 5 clusters with highest employee nominations for client field readiness.
+                        Top 5 clusters with highest associate nominations for client field readiness.
                     </p>
                 </div>
             </div>
             
-            <div class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                <i class="fa-solid fa-table-columns mr-1 text-slate-400"></i> Matching Sheet: Column A & Column B
+            <div class="text-xs font-bold text-slate-700 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200">
+                <i class="fa-solid fa-users text-rose-500 mr-1.5"></i> Associates Enablement
             </div>
         </div>
 
@@ -213,7 +213,7 @@
                 <!-- Chart (7 cols) -->
                 <div class="lg:col-span-7 bg-slate-50/60 p-4 rounded-xl border border-slate-100">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
-                        <i class="fa-solid fa-chart-bar" style="color: #f46262;"></i> FDE Top 5 Clusters Nomination Count
+                        <i class="fa-solid fa-chart-bar" style="color: #f46262;"></i> Top 5 Clusters — Nominated Associates
                     </h3>
                     <div class="relative h-64 sm:h-72 w-full">
                         <canvas id="fdeTop5Chart"></canvas>
@@ -226,8 +226,8 @@
                         <thead>
                             <tr class="text-xs font-bold uppercase text-slate-500 border-b border-slate-200 bg-slate-50/70">
                                 <th class="py-2.5 px-3">#</th>
-                                <th class="py-2.5 px-3">Column A: Cluster Name</th>
-                                <th class="py-2.5 px-3 text-right" style="color: #f46262;">Column B: Nominate emp Count</th>
+                                <th class="py-2.5 px-3">Cluster Name</th>
+                                <th class="py-2.5 px-3 text-right" style="color: #f46262;">Nominated Associates</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -247,7 +247,6 @@
                                 </td>
                                 <td class="py-3 px-3 text-right font-extrabold text-base" style="color: #30496d;">
                                     {{ c.count }}
-                                    <span class="text-xs font-semibold text-slate-400 block">{{ c.pct }}%</span>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -382,7 +381,7 @@ document.addEventListener("DOMContentLoaded", function() {
         data: {
             labels: fdeLabels,
             datasets: [{
-                label: 'Nominated Employees Count (Column B)',
+                label: 'Nominated Associates',
                 data: fdeCounts,
                 backgroundColor: [
                     '#30496d',
@@ -425,7 +424,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     padding: 10,
                     callbacks: {
                         label: function(context) {
-                            return ` Nominated Employees: ${context.parsed.y}`;
+                            return ` Nominated Associates: ${context.parsed.y}`;
                         }
                     }
                 }
