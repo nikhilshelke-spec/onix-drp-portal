@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import pandas as pd
 from config import (
     GOOGLE_SHEET_URL, DRP_PORTAL_URL, CREDLY_URL, DRP_MAPPING_SHEET_URL, 
-    DRP_ATTRIBUTION_URL, DRP_GUIDE_URL, FDE_SHEET_URL, BRAND_PRIMARY, BRAND_ACCENT, 
+    DRP_ATTRIBUTION_URL, DRP_GUIDE_URL, FDE_SHEET_URL, FDE_DASHBOARD_URL, BRAND_PRIMARY, BRAND_ACCENT, 
     TIER_DEFINITIONS
 )
 from drp_service import drp_service
@@ -88,6 +88,7 @@ def inject_global_vars():
         'drp_attribution_url': DRP_ATTRIBUTION_URL,
         'drp_guide_url': DRP_GUIDE_URL,
         'fde_sheet_url': FDE_SHEET_URL,
+        'fde_dashboard_url': FDE_DASHBOARD_URL,
         'brand_primary': BRAND_PRIMARY,
         'brand_accent': BRAND_ACCENT,
         'tier_definitions': TIER_DEFINITIONS,
@@ -223,13 +224,13 @@ def ld_summary():
         c['t4_pct'] = round((c.get('t4', 0) / tot) * 100, 1) if tot > 0 else 0
     
     # 2. Top 5 FDE Clusters (Column A: Cluster Name, Column B: Nominate emp Count)
-    # Ranked by Nominated Employee Count descending
+    # Ranked by Nominated Employee Count descending from FDE Google Sheet Pivot Table
     top5_fde_clusters = [
-        {"rank": 1, "cluster": "Cluster - Sagar", "count": 68},
-        {"rank": 2, "cluster": "Cluster - Gaurav", "count": 54},
-        {"rank": 3, "cluster": "Cluster - Shreepad", "count": 47},
-        {"rank": 4, "cluster": "Cluster - Sachin", "count": 39},
-        {"rank": 5, "cluster": "Cluster - Sandeep", "count": 32}
+        {"rank": 1, "cluster": "Cluster - Varun", "count": 21},
+        {"rank": 2, "cluster": "Cluster - Shreepad", "count": 9},
+        {"rank": 3, "cluster": "Portfolio - Rick", "count": 9},
+        {"rank": 4, "cluster": "Cluster - Sagar", "count": 7},
+        {"rank": 5, "cluster": "Cluster - Sachin", "count": 7}
     ]
     fde_total = sum(c["count"] for c in top5_fde_clusters)
     for c in top5_fde_clusters:
@@ -240,7 +241,7 @@ def ld_summary():
         top5_drp_clusters=top5_drp_clusters,
         top5_fde_clusters=top5_fde_clusters,
         drp_details_url="https://onix-drp-portal.onrender.com/priority_dashboard",
-        fde_details_url=FDE_SHEET_URL,
+        fde_details_url=FDE_DASHBOARD_URL,
         page='ld_summary'
     )
 
