@@ -11,7 +11,7 @@ DRP_MAPPING_SHEET_URL = "https://docs.google.com/spreadsheets/d/18dCDJX27QVROXPP
 DRP_ATTRIBUTION_URL = DRP_MAPPING_SHEET_URL
 DRP_GUIDE_URL = "https://docs.google.com/document/d/16XkeOLyI25xcqezGB8SEQWF3bB7ocCw4SY7gPw9Ax9A/edit?usp=sharing"
 FDE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1ZuQeck7XogXoVdfvBVMLJj1qFJ9FK9sS4mcyx_UztQM/edit?gid=901524739#gid=901524739"
-FDE_DASHBOARD_URL = "https://script.google.com/a/onixnet.com/macros/s/AKfycbxqqCEU9Vbvpe0CUaDzHu-s7rmXJjC47ANEKhBcWCKs9hXrzIu889kJKieOoAqqR0wrLA/exec?view=dashboard"
+FDE_DASHBOARD_URL = "https://script.google.com/macros/s/AKfycbxqqCEU9Vbvpe0CUaDzHu-s7rmXJjC47ANEKhBcWCKs9hXrzIu889kJKieOoAqqR0wrLA/exec?view=dashboard"
 BRAND_PRIMARY = "#30496d"
 BRAND_ACCENT = "#f46262"
 
