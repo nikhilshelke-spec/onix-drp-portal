@@ -71,7 +71,7 @@ def setup_role():
 
     # Single-page restriction for L&D Executive view (strictly only this 1 page)
     if (session.get('single_page_scope') == 'ld_summary' or request.args.get('view') == 'executive') and not session.get('is_owner'):
-        if request.endpoint and request.endpoint not in ['ld_summary', 'static', 'api_version', 'ping']:
+        if request.endpoint and request.endpoint not in ['ld_summary', 'priority_dashboard', 'static', 'api_version', 'ping']:
             return redirect(url_for('ld_summary'))
 
 @app.context_processor
@@ -210,6 +210,12 @@ def priority_dashboard():
 @app.route('/ld_summary')
 @app.route('/ld_executive_summary')
 def ld_summary():
+    if request.args.get('view') == 'executive':
+        session['single_page_scope'] = 'ld_summary'
+        if not session.get('is_owner'):
+            session['role'] = 'leader'
+            session['is_owner'] = False
+
     priority_charts = drp_service.get_priority_chart_data()
     cluster_dist = priority_charts.get('cluster_dist', [])
     

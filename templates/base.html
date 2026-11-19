@@ -310,7 +310,7 @@
                 <span id="copyLdBtnText">Copy Link</span>
               </button>
             </div>
-            <p class="text-[11px] text-slate-500">Opening this link displays <strong>strictly the L&D Executive Summary page</strong>. All other portal tabs and admin tools are hidden.</p>
+            <p class="text-[11px] text-slate-500">Opening this link displays <strong>strictly the L&D Executive Summary page</strong>. No login or authorization required — open for anyone within Onix with this link. All other portal tabs and admin tools are hidden.</p>
           </div>
 
           <!-- Add Specific Executive Leader -->
@@ -352,9 +352,21 @@
       const m = document.getElementById('ldShareModal');
       if (m) {
         m.classList.remove('hidden');
+        const input = document.getElementById('directLdLinkInput');
+        if (input) {
+          let baseUrl = "https://onix-drp-portal.onrender.com";
+          if (window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost') {
+            baseUrl = window.location.origin;
+          }
+          input.value = baseUrl + "/ld_summary?view=executive";
+        }
         loadLdLeaders();
       } else {
-        const link = "https://onix-drp-portal.onrender.com/ld_summary?view=executive";
+        let baseUrl = "https://onix-drp-portal.onrender.com";
+        if (window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost') {
+          baseUrl = window.location.origin;
+        }
+        const link = baseUrl + "/ld_summary?view=executive";
         if (navigator.clipboard) {
           navigator.clipboard.writeText(link).then(() => alert('Executive Link copied to clipboard:\n\n' + link));
         } else {
